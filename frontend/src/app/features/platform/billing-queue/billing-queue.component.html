@@ -1,0 +1,86 @@
+<mc-page-header
+  title="Cola de comprobantes"
+  [subtitle]="total() + ' pendientes de revisión'"
+/>
+
+<p-toast />
+
+<div class="mc-card overflow-hidden p-0">
+  <p-table
+    [value]="items()"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="total()"
+    [loading]="loading()"
+    (onLazyLoad)="loadPage($event)"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Colegio</th>
+        <th>Período</th>
+        <th>Estado</th>
+        <th>Subido</th>
+        <th class="w-48">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.school_name ?? '—' }}</td>
+        <td>{{ row.period_month }}/{{ row.period_year }}</td>
+        <td><p-tag [value]="row.review_status" severity="warn" /></td>
+        <td>{{ row.created_at | date: 'short' }}</td>
+        <td>
+          <div class="flex flex-wrap gap-2">
+            <p-button
+              label="Aprobar"
+              size="small"
+              [loading]="actionLoading()"
+              (onClick)="approve(row)"
+            />
+            <p-button
+              label="Rechazar"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="actionLoading()"
+              (onClick)="openReject(row)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5" class="py-8 text-center text-slate-500">Sin comprobantes pendientes</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="Rechazar comprobante"
+  [visible]="rejectVisible()"
+  (visibleChange)="rejectVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <label class="mb-2 block text-sm font-medium text-slate-700">Motivo</label>
+  <textarea
+    class="mc-input min-h-24"
+    [ngModel]="rejectReason()"
+    (ngModelChange)="rejectReason.set($event)"
+    placeholder="Indique el motivo del rechazo…"
+  ></textarea>
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="rejectVisible.set(false)" />
+    <p-button
+      label="Rechazar"
+      severity="danger"
+      [disabled]="!rejectReason().trim()"
+      [loading]="actionLoading()"
+      (onClick)="confirmReject()"
+    />
+  </ng-template>
+</p-dialog>

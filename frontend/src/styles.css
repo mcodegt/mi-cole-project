@@ -1,0 +1,42 @@
+@import 'primeicons/primeicons.css';
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+@layer components {
+  .mc-card {
+    @apply rounded-lg border border-slate-200 bg-white p-5 shadow-sm;
+  }
+
+  .mc-nav-link {
+    @apply flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white;
+  }
+
+  .mc-nav-link-active {
+    @apply bg-white/10 text-white;
+  }
+
+  .mc-input {
+    @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-primary focus:ring-2;
+  }
+
+  .bg-sidebar-staff {
+    background-color: var(--mc-sidebar-bg-staff);
+  }
+
+  .bg-sidebar-parent {
+    background-color: var(--mc-sidebar-bg-parent);
+  }
+
+  .mc-btn-primary {
+    @apply rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60;
+  }
+}

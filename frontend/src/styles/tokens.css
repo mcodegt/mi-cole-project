@@ -1,0 +1,13 @@
+:root {
+  --mc-primary: #2563eb;
+  --mc-primary-hover: #1d4ed8;
+  --mc-surface: #ffffff;
+  --mc-surface-muted: #f8fafc;
+  --mc-border: #e2e8f0;
+  --mc-text: #0f172a;
+  --mc-text-muted: #64748b;
+  --mc-sidebar-bg: #0f172a;
+  --mc-sidebar-bg-staff: #1e3a5f;
+  --mc-sidebar-bg-parent: #14532d;
+  --mc-sidebar-text: #e2e8f0;
+}

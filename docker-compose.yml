@@ -1,0 +1,56 @@
+# Solo la app monolítica (Angular build + FastAPI). La base de datos queda fuera por defecto.
+#
+# Postgres en TU PC + app en Docker: dentro del contenedor `localhost` NO es tu máquina.
+# Por eso `environment` fuerza DATABASE_HOST=host.docker.internal (sale al host).
+# Si usás RDS u otro servidor remoto: comentá esa línea y pon el host en `backend/.env`.
+#
+# `backend/.env` aporta usuario, contraseña, puerto, nombre BD, JWT, CORS, etc.
+#
+# Esquema / semillas (desde el host, con Postgres accesible en localhost):
+#   cd backend && python -m app.cli apply-sql && python -m app.cli seed-superadmin
+#
+# Superadmin (contenedor en marcha):
+#   docker compose exec app python -m app.cli apply-sql
+#   docker compose exec app python -m app.cli seed-superadmin
+#
+# Postgres embebido (opcional, sin Postgres local):
+#   docker compose --profile local-db up --build
+#   En ese caso cambiá DATABASE_HOST a `db` abajo (o comentá host.docker.internal).
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: mi-cole-project/Dockerfile
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    env_file:
+      - backend/.env
+    environment:
+      STATIC_ROOT: /app/static/browser
+      # Sobrescribe DATABASE_HOST del .env para alcanzar Postgres en el host Windows/Mac.
+      # RDS / host remoto: comentá la siguiente línea y definí DATABASE_HOST en backend/.env.
+      # Con --profile local-db: usá DATABASE_HOST: db
+      DATABASE_HOST: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  db:
+    profiles: ["local-db"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: micole
+      POSTGRES_PASSWORD: micole
+      POSTGRES_DB: micole
+    ports:
+      - "5432:5432"
+    volumes:
+      - micole_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U micole -d micole"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  micole_pgdata:
