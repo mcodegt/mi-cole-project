@@ -1,86 +1,43 @@
 <div class="mc-app-shell mc-app-shell--portal">
-
-  <div class="hidden shrink-0 md:block">
-
+  <div class="mc-app-shell__sidebar">
     <mc-modern-sidebar
-
       accent="parent"
-
       brandTitle="Portal padres"
-
       [brandSubtitle]="auth.session()?.parent?.school_name ?? ''"
-
       brandIcon="pi pi-heart"
-
       [navItems]="navItems"
-
       [showSearch]="false"
-
       [userName]="auth.session()?.user?.full_name ?? ''"
-
       [userEmail]="auth.session()?.user?.email ?? ''"
-
       (logoutClick)="logout()"
-
     />
-
   </div>
-
-
 
   <div class="mc-app-shell__main mc-app-shell__main--portal">
-
     <mc-portal-mobile-header
-
       class="md:hidden"
-
       accent="parent"
-
       brandTitle="Portal padres"
-
       [brandSubtitle]="auth.session()?.parent?.school_name ?? ''"
-
       brandIcon="pi pi-heart"
-
       [userName]="auth.session()?.user?.full_name ?? ''"
-
       [userEmail]="auth.session()?.user?.email ?? ''"
-
       (logoutClick)="logout()"
-
     />
 
-
-
     <header class="mc-app-shell__header hidden md:flex">
-
       <div>
-
         <p class="text-sm font-medium mc-text">{{ auth.session()?.user?.full_name }}</p>
-
         @if (auth.session()?.parent?.campus_name) {
-
           <p class="text-xs mc-text-muted">{{ auth.session()?.parent?.campus_name }}</p>
-
         }
-
       </div>
-
     </header>
 
-
-
     <main class="mc-app-shell__content mc-app-shell__content--portal">
-
       <router-outlet />
-
     </main>
-
   </div>
 
-
-
   <mc-mobile-bottom-nav class="md:hidden" accent="parent" [items]="navItems" />
-
 </div>
-

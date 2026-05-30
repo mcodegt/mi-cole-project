@@ -69,7 +69,7 @@ interface InviteResult {
       <p-button label="Buscar" icon="pi pi-search" (onClick)="applyFilters()" />
     </div>
 
-    <div class="mc-card overflow-hidden p-0">
+    <div class="mc-card mc-table-card">
       <p-table
         [value]="parents()"
         [lazy]="true"

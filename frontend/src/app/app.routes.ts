@@ -12,12 +12,13 @@ export const routes: Routes = [
     path: 'login/platform',
     loadComponent: () =>
       import('./features/auth/login-page/login-page.component').then((m) => m.LoginPageComponent),
-    data: { portal: 'platform' },
+    data: { portal: 'platform', portalTitle: 'Platform', title: 'Iniciar sesión' },
   },
   {
     path: 'login/:portal/:schoolSlug/:campusSlug',
     loadComponent: () =>
       import('./features/auth/login-page/login-page.component').then((m) => m.LoginPageComponent),
+    data: { title: 'Iniciar sesión' },
   },
   {
     path: 'change-password',
@@ -26,10 +27,12 @@ export const routes: Routes = [
       import('./features/auth/change-password-page/change-password-page.component').then(
         (m) => m.ChangePasswordPageComponent,
       ),
+    data: { title: 'Cambiar contraseña' },
   },
   {
     path: 'platform',
     canActivate: [authGuard, platformGuard],
+    data: { portalTitle: 'Platform' },
     loadComponent: () =>
       import('./layouts/platform-shell/platform-shell.component').then((m) => m.PlatformShellComponent),
     loadChildren: () =>
@@ -38,6 +41,7 @@ export const routes: Routes = [
   {
     path: 'app',
     canActivate: [authGuard, staffContextGuard],
+    data: { portalTitle: 'Staff' },
     loadComponent: () =>
       import('./layouts/staff-shell/staff-shell.component').then((m) => m.StaffShellComponent),
     loadChildren: () => import('./features/staff/staff.routes').then((m) => m.STAFF_ROUTES),
@@ -45,6 +49,7 @@ export const routes: Routes = [
   {
     path: 'parent',
     canActivate: [authGuard, parentGuard],
+    data: { portalTitle: 'Padres' },
     loadComponent: () =>
       import('./layouts/parent-shell/parent-shell.component').then((m) => m.ParentShellComponent),
     loadChildren: () => import('./features/parent/parent.routes').then((m) => m.PARENT_ROUTES),
@@ -52,6 +57,7 @@ export const routes: Routes = [
   {
     path: 'student',
     canActivate: [authGuard, studentGuard],
+    data: { portalTitle: 'Estudiantes' },
     loadComponent: () =>
       import('./layouts/student-shell/student-shell.component').then((m) => m.StudentShellComponent),
     loadChildren: () => import('./features/student/student.routes').then((m) => m.STUDENT_ROUTES),

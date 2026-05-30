@@ -25,7 +25,7 @@ interface SchoolRow {
       <p class="mb-4 text-sm text-red-600">{{ error() }}</p>
     }
 
-    <div class="mc-card overflow-hidden p-0">
+    <div class="mc-card mc-table-card">
       <p-table
         [value]="schools()"
         [lazy]="true"
@@ -33,6 +33,7 @@ interface SchoolRow {
         [rows]="pageSize"
         [totalRecords]="total()"
         [loading]="loading()"
+        [rowsPerPageOptions]="[10, 25, 50]"
         (onLazyLoad)="loadPage($event)"
         styleClass="p-datatable-sm"
       >

@@ -129,8 +129,9 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
       .mc-sidebar {
         position: relative;
         width: 16.5rem;
-        min-height: calc(100vh - 1.5rem);
-        margin: 0.75rem 0 0.75rem 0.75rem;
+        height: calc(100vh - 1.5rem);
+        max-height: calc(100vh - 1.5rem);
+        margin: 0;
         padding: 1rem 0.75rem;
         background: var(--mc-sidebar-surface);
         border: 1px solid var(--mc-sidebar-border);

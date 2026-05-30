@@ -4,6 +4,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
 import { McPageHeaderComponent } from '../../../shared/mc-page-header.component';
@@ -27,7 +28,7 @@ interface AssignmentRow {
 @Component({
   selector: 'app-parent-assignments',
   standalone: true,
-  imports: [DatePipe, FormsModule, TagModule, SelectModule, McPageHeaderComponent],
+  imports: [DatePipe, FormsModule, TableModule, TagModule, SelectModule, McPageHeaderComponent],
   template: `
     <mc-page-header title="Tareas" subtitle="Tareas publicadas por el colegio" />
 
@@ -44,31 +45,48 @@ interface AssignmentRow {
       />
     </div>
 
-    @if (loading()) {
-      <div class="mc-card py-8 text-center mc-text-muted">Cargando tareas…</div>
-    } @else if (selectedStudentId) {
-      <div class="grid gap-3">
-        @for (a of assignments(); track a.id) {
-          <article class="mc-card">
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <div class="min-w-0 flex-1">
+    @if (selectedStudentId) {
+      <div class="mc-card mc-table-card">
+        <p-table
+          [value]="assignments()"
+          [paginator]="true"
+          [rows]="pageSize"
+          [loading]="loading()"
+          [rowsPerPageOptions]="[5, 10, 25]"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template #header>
+            <tr>
+              <th>Tarea</th>
+              <th>Entrega</th>
+              <th>Estado entrega</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-a>
+            <tr>
+              <td>
                 <p class="font-medium mc-text">{{ a.title }}</p>
                 @if (a.description) {
-                  <p class="mt-1 text-sm mc-text-muted line-clamp-3">{{ a.description }}</p>
+                  <p class="mt-1 text-sm mc-text-muted line-clamp-2">{{ a.description }}</p>
                 }
-              </div>
-              <p-tag
-                [value]="a.submission_status ?? 'pendiente'"
-                [severity]="a.submission_status === 'submitted' ? 'success' : 'warn'"
-              />
-            </div>
-            <p class="mt-3 text-xs mc-text-muted">
-              Entrega: {{ a.due_at ? (a.due_at | date: 'mediumDate') : 'Sin fecha' }}
-            </p>
-          </article>
-        } @empty {
-          <div class="mc-card py-8 text-center mc-text-muted">Sin tareas publicadas</div>
-        }
+              </td>
+              <td class="whitespace-nowrap">
+                {{ a.due_at ? (a.due_at | date: 'mediumDate') : 'Sin fecha' }}
+              </td>
+              <td>
+                <p-tag
+                  [value]="a.submission_status ?? 'pendiente'"
+                  [severity]="a.submission_status === 'submitted' ? 'success' : 'warn'"
+                />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td colspan="3" class="py-8 text-center mc-text-muted">Sin tareas publicadas</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
     }
   `,
@@ -81,6 +99,7 @@ export class ParentAssignmentsComponent implements OnInit {
   readonly children = signal<ChildOption[]>([]);
   readonly assignments = signal<AssignmentRow[]>([]);
   readonly loading = signal(false);
+  readonly pageSize = 10;
   selectedStudentId: string | null = null;
 
   ngOnInit(): void {

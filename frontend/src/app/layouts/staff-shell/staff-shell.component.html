@@ -1,13 +1,15 @@
 <div class="mc-app-shell">
-  <mc-modern-sidebar
-    accent="staff"
-    brandTitle="Mi Cole"
-    [brandSubtitle]="auth.session()?.staff?.school_name ?? 'Staff'"
-    [navItems]="navItems()"
-    [userName]="auth.session()?.user?.full_name ?? ''"
-    [userEmail]="auth.session()?.user?.email ?? ''"
-    (logoutClick)="logout()"
-  />
+  <div class="mc-app-shell__sidebar">
+    <mc-modern-sidebar
+      accent="staff"
+      brandTitle="Mi Cole"
+      [brandSubtitle]="auth.session()?.staff?.school_name ?? 'Staff'"
+      [navItems]="navItems()"
+      [userName]="auth.session()?.user?.full_name ?? ''"
+      [userEmail]="auth.session()?.user?.email ?? ''"
+      (logoutClick)="logout()"
+    />
+  </div>
 
   <div class="mc-app-shell__main">
     <header class="mc-app-shell__header">

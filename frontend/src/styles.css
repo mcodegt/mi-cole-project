@@ -63,6 +63,26 @@
     background: var(--mc-app-shell-bg);
   }
 
+  @media (min-width: 768px) {
+    .mc-app-shell {
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  .mc-app-shell__sidebar {
+    @apply hidden shrink-0 md:block;
+    padding: 0.75rem 0 0.75rem 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .mc-app-shell__sidebar {
+      height: 100vh;
+      overflow: hidden;
+    }
+  }
+
   .mc-app-shell--portal {
     @apply flex-col md:flex-row;
   }
@@ -70,6 +90,15 @@
   .mc-app-shell__main {
     @apply flex min-w-0 flex-1 flex-col;
     margin: 0.75rem 0.75rem 0.75rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .mc-app-shell__main {
+      height: calc(100vh - 1.5rem);
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
   }
 
   .mc-app-shell__main--portal {
@@ -85,13 +114,14 @@
   }
 
   .mc-app-shell__header {
-    @apply flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3 shadow-sm;
+    @apply flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3 shadow-sm;
     border: 1px solid var(--mc-border);
     background: var(--mc-surface);
   }
 
   .mc-app-shell__content {
-    @apply mt-3 flex-1 overflow-auto rounded-2xl p-5 shadow-sm;
+    @apply mt-3 min-h-0 flex-1 rounded-2xl p-5 shadow-sm;
+    overflow-y: auto;
     border: 1px solid var(--mc-border);
     background: var(--mc-surface);
   }
@@ -105,6 +135,23 @@
       @apply mt-3 rounded-2xl border p-5 shadow-sm;
       border-color: var(--mc-border);
       background: var(--mc-surface);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .mc-app-shell.mc-app-shell--portal {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+    }
+
+    .mc-app-shell--portal .mc-app-shell__main--portal {
+      height: auto;
+      overflow: visible;
+    }
+
+    .mc-app-shell__content--portal {
+      overflow-y: visible;
     }
   }
 
@@ -158,5 +205,9 @@
 
   .mc-btn-primary {
     @apply rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60;
+  }
+
+  .mc-table-card {
+    @apply overflow-hidden p-0;
   }
 }

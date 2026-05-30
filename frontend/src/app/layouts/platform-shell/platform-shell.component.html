@@ -1,14 +1,16 @@
 <div class="mc-app-shell">
-  <mc-modern-sidebar
-    accent="platform"
-    brandTitle="Mi Cole"
-    brandSubtitle="Platform"
-    brandIcon="pi pi-server"
-    [navItems]="navItems"
-    [userName]="auth.session()?.user?.full_name ?? ''"
-    [userEmail]="auth.session()?.user?.email ?? ''"
-    (logoutClick)="logout()"
-  />
+  <div class="mc-app-shell__sidebar">
+    <mc-modern-sidebar
+      accent="platform"
+      brandTitle="Mi Cole"
+      brandSubtitle="Platform"
+      brandIcon="pi pi-server"
+      [navItems]="navItems"
+      [userName]="auth.session()?.user?.full_name ?? ''"
+      [userEmail]="auth.session()?.user?.email ?? ''"
+      (logoutClick)="logout()"
+    />
+  </div>
 
   <div class="mc-app-shell__main">
     <header class="mc-app-shell__header">
