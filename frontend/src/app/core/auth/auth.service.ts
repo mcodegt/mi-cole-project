@@ -95,6 +95,23 @@ export class AuthService {
       .pipe(tap((res) => this.applyLogin(res)));
   }
 
+  switchPortal(body: {
+    portal: Portal;
+    school_slug: string;
+    campus_slug: string;
+  }): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.api}/auth/switch-portal`, body)
+      .pipe(tap((res) => this.applyLogin(res)));
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.api}/auth/change-password`, {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+  }
+
   fetchLoginContext(params: {
     school_slug: string;
     campus_slug: string;
@@ -145,8 +162,11 @@ export class AuthService {
       schoolId: res.sid,
       membershipId: res.mid,
       parentId: res.pid,
+      studentId: res.stid,
       campusId: res.campus_id,
       platform: res.platform,
+      mustChangePassword: res.user.must_change_password ?? false,
+      portals: res.portals ?? [],
     };
     this.sessionState.set(session);
     this.writeStorage(session);
@@ -165,10 +185,14 @@ export class AuthService {
       schoolId: me.sid,
       membershipId: me.mid,
       parentId: me.pid,
+      studentId: me.stid,
       campusId: me.campus_id ?? prev?.campusId,
       platform: me.platform,
       staff: me.staff,
       parent: me.parent,
+      student: me.student,
+      mustChangePassword: me.user.must_change_password ?? false,
+      portals: me.portals ?? prev?.portals ?? [],
     };
     this.sessionState.set(session);
     this.writeStorage(session);

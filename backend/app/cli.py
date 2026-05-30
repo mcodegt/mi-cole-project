@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.database import SessionLocal, engine
 from app.models.campus import Campus, MembershipCampus
-from app.models.edu import Parent, StudentParent
+from app.models.edu import Parent, Student, StudentParent
 from app.models.rbac import PlatformRoleAssignment, Role, SchoolMembership
 from app.models.school import School
 from app.models.user import User
@@ -21,11 +21,12 @@ def _resolve_sql_dir() -> Path:
     env = os.environ.get("MICOLE_SQL_DIR")
     if env:
         return Path(env)
-    # mi-cole-project/backend/app/cli.py → ../../mi-cole-docs/sql
-    docs_sql = Path(__file__).resolve().parents[3] / "mi-cole-docs" / "sql"
-    if docs_sql.is_dir():
-        return docs_sql
-    return Path(__file__).resolve().parent.parent / "sql"
+    p = Path(__file__).resolve()
+    if len(p.parents) > 3:
+        docs_sql = p.parents[3] / "mi-cole-docs" / "sql"
+        if docs_sql.is_dir():
+            return docs_sql
+    return p.parent.parent / "sql"
 
 
 SQL_DIR = _resolve_sql_dir()
@@ -101,6 +102,9 @@ DEMO_OWNER_EMAIL = "owner@colegio-demo.dev"
 DEMO_OPERATOR_EMAIL = "operator@colegio-demo.dev"
 DEMO_PARENT_EMAIL = "parent@colegio-demo.dev"
 DEMO_PARENT_ID = "f8000004-0000-4000-8000-000000000001"
+DEMO_STUDENT_EMAIL = "student@colegio-demo.dev"
+DEMO_STUDENT_RECORD_ID = "f8000001-0000-4000-8000-000000000001"
+DEMO_INTERMEDIO_PLAN_ID = "e5000001-0000-4000-8000-000000000002"
 DEMO_CHILD_STUDENT_IDS = (
     "f8000001-0000-4000-8000-000000000001",
     "f8000001-0000-4000-8000-000000000002",
@@ -119,6 +123,8 @@ def seed_demo() -> None:
         if not school:
             print("Colegio demo no encontrado. Ejecuta migrations/004_seed_demo_school.sql.", file=sys.stderr)
             sys.exit(1)
+
+        school.subscription_plan_id = uuid.UUID(DEMO_INTERMEDIO_PLAN_ID)
 
         owner_role = db.get(Role, uuid.UUID(DEMO_OWNER_ROLE))
         operator_role = db.get(Role, uuid.UUID(DEMO_OPERATOR_ROLE))
@@ -220,11 +226,37 @@ def seed_demo() -> None:
             if not exists:
                 db.add(StudentParent(student_id=uuid.UUID(student_id), parent_id=parent.id))
 
+        student_user = db.scalar(select(User).where(User.email == DEMO_STUDENT_EMAIL))
+        if not student_user:
+            student_user = User(
+                email=DEMO_STUDENT_EMAIL,
+                password_hash=hash_password(DEMO_PASSWORD),
+                full_name="Estudiante Demo 1",
+                is_active=True,
+            )
+            db.add(student_user)
+            db.flush()
+            print(f"Usuario creado: {DEMO_STUDENT_EMAIL}")
+        else:
+            student_user.password_hash = hash_password(DEMO_PASSWORD)
+            print(f"Usuario actualizado: {DEMO_STUDENT_EMAIL}")
+
+        student = db.get(Student, uuid.UUID(DEMO_STUDENT_RECORD_ID))
+        if not student:
+            print(
+                f"Registro estudiante {DEMO_STUDENT_RECORD_ID} no encontrado. "
+                "Ejecuta migrations/008_seed_demo_students.sql.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        student.user_id = student_user.id
+
         db.commit()
         print("Seed demo listo.")
         print(f"  Owner:    {DEMO_OWNER_EMAIL} / {DEMO_PASSWORD}")
         print(f"  Operator: {DEMO_OPERATOR_EMAIL} / {DEMO_PASSWORD} (solo sede-norte)")
         print(f"  Parent:   {DEMO_PARENT_EMAIL} / {DEMO_PASSWORD} (3 hijos en sede-norte)")
+        print(f"  Student:  {DEMO_STUDENT_EMAIL} / {DEMO_PASSWORD} (EST-001, sede-norte)")
     finally:
         db.close()
 

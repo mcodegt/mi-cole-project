@@ -17,8 +17,11 @@ from app.services.edu_service import (
     get_student as get_student_svc,
     link_student_parent as link_student_parent_svc,
     list_students as list_students_svc,
+    student_to_read,
     update_student as update_student_svc,
 )
+from app.schemas.invite import PortalInviteRequest, PortalInviteResponse
+from app.services.invite_service import invite_student
 
 router = APIRouter(prefix="/students", tags=["students"])
 
@@ -37,7 +40,7 @@ def list_students_route(
         db, ctx, page=page, limit=limit, campus_id=campus_id, status_filter=status_filter, q=q
     )
     return PaginatedResponse(
-        items=[StudentRead.model_validate(s) for s in rows],
+        items=[student_to_read(s) for s in rows],
         total=total,
         page=page,
         limit=limit,
@@ -60,7 +63,7 @@ def get_student_route(
     ctx: AuthzContext = Depends(require_staff_with_billing("school.students.read")),
 ) -> StudentRead:
     student = get_student_svc(db, ctx, student_id)
-    return StudentRead.model_validate(student)
+    return student_to_read(student)
 
 
 @router.patch("/{student_id}", response_model=StudentRead)
@@ -92,3 +95,13 @@ def link_parent_route(
 ) -> Response:
     link_student_parent_svc(db, ctx, student_id, body)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{student_id}/invite", response_model=PortalInviteResponse, status_code=status.HTTP_201_CREATED)
+def invite_student_route(
+    student_id: UUID,
+    body: PortalInviteRequest,
+    db: Session = Depends(get_db),
+    ctx: AuthzContext = Depends(require_staff_with_billing("school.students.write")),
+) -> PortalInviteResponse:
+    return invite_student(db, ctx, student_id=student_id, body=body)

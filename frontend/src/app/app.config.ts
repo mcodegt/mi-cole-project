@@ -8,9 +8,14 @@ import Aura from '@primeng/themes/aura';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { AuthService } from './core/auth/auth.service';
+import { ThemeService } from './core/theme/theme.service';
 
 function initAuth(auth: AuthService): () => Promise<void> {
   return () => auth.initFromStorage();
+}
+
+function initTheme(theme: ThemeService): () => void {
+  return () => theme.init();
 }
 
 export const appConfig: ApplicationConfig = {
@@ -23,7 +28,7 @@ export const appConfig: ApplicationConfig = {
       theme: {
         preset: Aura,
         options: {
-          darkModeSelector: false,
+          darkModeSelector: '.dark',
           cssLayer: {
             name: 'primeng',
             order: 'tailwind-base, primeng, tailwind-utilities',
@@ -35,6 +40,12 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: initAuth,
       deps: [AuthService],
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initTheme,
+      deps: [ThemeService],
       multi: true,
     },
   ],

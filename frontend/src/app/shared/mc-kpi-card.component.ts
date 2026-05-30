@@ -5,10 +5,10 @@ import { Component, input } from '@angular/core';
   standalone: true,
   template: `
     <div class="mc-card">
-      <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ label() }}</p>
-      <p class="mt-2 text-3xl font-bold text-primary">{{ value() }}</p>
+      <p class="text-xs font-semibold uppercase tracking-wide mc-text-muted">{{ label() }}</p>
+      <p class="mt-2 text-2xl font-bold mc-text-accent sm:text-3xl">{{ value() }}</p>
       @if (hint()) {
-        <p class="mt-1 text-xs text-slate-500">{{ hint() }}</p>
+        <p class="mt-1 text-xs mc-text-subtle">{{ hint() }}</p>
       }
     </div>
   `,

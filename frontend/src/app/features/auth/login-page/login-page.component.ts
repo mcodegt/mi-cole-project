@@ -72,8 +72,12 @@ export class LoginPageComponent implements OnInit {
         campus_slug: this.portal !== 'platform' ? this.campusSlug : undefined,
       })
       .subscribe({
-        next: () => {
+        next: (res) => {
           this.loading.set(false);
+          if (res.user.must_change_password) {
+            void this.router.navigate(['/change-password']);
+            return;
+          }
           void this.router.navigate(this.auth.portalHome(this.portal));
         },
         error: (err) => {

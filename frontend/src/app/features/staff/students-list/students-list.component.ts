@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
@@ -15,11 +16,18 @@ interface StudentRow {
   code: string | null;
   full_name: string;
   status: string;
+  portal_access: boolean;
 }
 
 interface CampusOption {
   id: string;
   name: string;
+}
+
+interface InviteResult {
+  login_path: string;
+  temporary_password: string;
+  email: string;
 }
 
 @Component({
@@ -32,6 +40,7 @@ interface CampusOption {
     InputTextModule,
     SelectModule,
     ButtonModule,
+    DialogModule,
     McPageHeaderComponent,
   ],
   template: `
@@ -42,7 +51,7 @@ interface CampusOption {
 
     <div class="mc-card mb-4 flex flex-wrap items-end gap-3 p-4">
       <div class="min-w-[12rem] flex-1">
-        <label class="mb-1 block text-xs font-medium text-slate-500">Buscar</label>
+        <label class="mb-1 block text-xs font-medium mc-text-muted">Buscar</label>
         <input
           pInputText
           class="w-full"
@@ -52,7 +61,7 @@ interface CampusOption {
         />
       </div>
       <div class="w-44">
-        <label class="mb-1 block text-xs font-medium text-slate-500">Sede</label>
+        <label class="mb-1 block text-xs font-medium mc-text-muted">Sede</label>
         <p-select
           [options]="campuses()"
           [(ngModel)]="campusInput"
@@ -64,7 +73,7 @@ interface CampusOption {
         />
       </div>
       <div class="w-36">
-        <label class="mb-1 block text-xs font-medium text-slate-500">Estado</label>
+        <label class="mb-1 block text-xs font-medium mc-text-muted">Estado</label>
         <p-select
           [options]="statusOptions"
           [(ngModel)]="statusInput"
@@ -89,31 +98,89 @@ interface CampusOption {
         [rowsPerPageOptions]="[10, 25, 50]"
         (onLazyLoad)="loadPage($event)"
         styleClass="p-datatable-sm"
-        [tableStyle]="{ 'min-width': '40rem' }"
+        [tableStyle]="{ 'min-width': '44rem' }"
       >
         <ng-template #header>
           <tr>
             <th>Código</th>
             <th>Nombre</th>
             <th>Estado</th>
+            <th>Portal</th>
+            <th></th>
           </tr>
         </ng-template>
         <ng-template #body let-s>
           <tr>
-            <td class="font-medium text-slate-800">{{ s.code || '—' }}</td>
+            <td class="font-medium mc-text">{{ s.code || '—' }}</td>
             <td>{{ s.full_name }}</td>
             <td>
               <p-tag [value]="s.status" [severity]="s.status === 'active' ? 'success' : 'secondary'" />
+            </td>
+            <td>
+              @if (s.portal_access) {
+                <p-tag value="activo" severity="success" />
+              } @else {
+                <p-tag value="sin acceso" severity="secondary" />
+              }
+            </td>
+            <td>
+              @if (!s.portal_access && s.status === 'active') {
+                <p-button
+                  label="Invitar"
+                  icon="pi pi-send"
+                  size="small"
+                  [text]="true"
+                  (onClick)="openInvite(s)"
+                />
+              }
             </td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>
           <tr>
-            <td colspan="3" class="py-8 text-center text-slate-500">Sin estudiantes</td>
+            <td colspan="5" class="py-8 text-center mc-text-muted">Sin estudiantes</td>
           </tr>
         </ng-template>
       </p-table>
     </div>
+
+    <p-dialog
+      header="Invitar al portal de estudiantes"
+      [(visible)]="inviteVisible"
+      [modal]="true"
+      [style]="{ width: '28rem', maxWidth: '95vw' }"
+    >
+      @if (!inviteResult()) {
+        <p class="mb-4 text-sm mc-text-muted">
+          El estudiante recibirá acceso con contraseña temporal al portal de su sede.
+        </p>
+        <label class="mb-1 block text-xs font-medium mc-text-muted">Correo del estudiante</label>
+        <input pInputText class="w-full" type="email" [(ngModel)]="inviteEmail" />
+        @if (inviteError()) {
+          <p class="mt-2 text-sm text-red-600">{{ inviteError() }}</p>
+        }
+        <ng-template #footer>
+          <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="inviteVisible = false" />
+          <p-button label="Invitar" [loading]="inviteLoading()" (onClick)="sendInvite()" />
+        </ng-template>
+      } @else {
+        <div class="space-y-3 text-sm">
+          <p class="font-medium text-emerald-700 dark:text-emerald-300">Invitación creada</p>
+          <div>
+            <span class="mc-text-muted">Enlace</span>
+            <p class="mt-1 break-all rounded p-2 font-mono text-xs" style="background: var(--mc-surface-muted)">{{ inviteLoginUrl() }}</p>
+          </div>
+          <div>
+            <span class="mc-text-muted">Contraseña temporal</span>
+            <p class="mt-1 rounded p-2 font-mono" style="background: var(--mc-surface-muted)">{{ inviteResult()?.temporary_password }}</p>
+          </div>
+          <p-button label="Copiar enlace" icon="pi pi-copy" (onClick)="copyInviteUrl()" />
+        </div>
+        <ng-template #footer>
+          <p-button label="Cerrar" (onClick)="closeInvite()" />
+        </ng-template>
+      }
+    </p-dialog>
   `,
 })
 export class StudentsListComponent implements OnInit {
@@ -132,6 +199,13 @@ export class StudentsListComponent implements OnInit {
   private campusFilter: string | null = null;
   private statusFilter: string | null = null;
   private lastEvent: TableLazyLoadEvent | null = null;
+
+  inviteVisible = false;
+  inviteEmail = '';
+  inviteTargetId: string | null = null;
+  readonly inviteLoading = signal(false);
+  readonly inviteError = signal<string | null>(null);
+  readonly inviteResult = signal<InviteResult | null>(null);
 
   readonly statusOptions = [
     { label: 'Activo', value: 'active' },
@@ -181,5 +255,50 @@ export class StudentsListComponent implements OnInit {
         },
         error: () => this.loading.set(false),
       });
+  }
+
+  openInvite(student: StudentRow): void {
+    this.inviteTargetId = student.id;
+    this.inviteEmail = '';
+    this.inviteError.set(null);
+    this.inviteResult.set(null);
+    this.inviteVisible = true;
+  }
+
+  sendInvite(): void {
+    if (!this.inviteTargetId || !this.inviteEmail.trim()) {
+      return;
+    }
+    this.inviteLoading.set(true);
+    this.inviteError.set(null);
+    this.http
+      .post<InviteResult>(`${environment.apiUrl}/students/${this.inviteTargetId}/invite`, {
+        email: this.inviteEmail.trim(),
+      })
+      .subscribe({
+        next: (res) => {
+          this.inviteResult.set(res);
+          this.inviteLoading.set(false);
+          this.loadPage(this.lastEvent ?? { first: 0, rows: this.pageSize });
+        },
+        error: (err) => {
+          this.inviteLoading.set(false);
+          this.inviteError.set(err.error?.detail ?? 'No se pudo invitar');
+        },
+      });
+  }
+
+  inviteLoginUrl(): string {
+    const path = this.inviteResult()?.login_path ?? '';
+    return `${window.location.origin}${path}`;
+  }
+
+  copyInviteUrl(): void {
+    void navigator.clipboard.writeText(this.inviteLoginUrl());
+  }
+
+  closeInvite(): void {
+    this.inviteVisible = false;
+    this.inviteResult.set(null);
   }
 }

@@ -1,5 +1,6 @@
 <div
-  class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4"
+  class="flex min-h-screen items-center justify-center p-4"
+  style="background: var(--mc-app-shell-bg)"
   [style.--mc-primary]="accentColor()"
 >
   <div class="mc-card w-full max-w-md">
@@ -7,23 +8,23 @@
       @if (ctx.branding.logo_url) {
         <img class="mb-4 max-h-16" [src]="ctx.branding.logo_url" alt="" />
       }
-      <h1 class="text-xl font-bold text-slate-900">{{ ctx.branding.login_title }}</h1>
+      <h1 class="text-xl font-bold mc-text">{{ ctx.branding.login_title }}</h1>
       @if (ctx.branding.login_subtitle) {
-        <p class="mt-1 text-sm text-slate-500">{{ ctx.branding.login_subtitle }}</p>
+        <p class="mt-1 text-sm mc-text-muted">{{ ctx.branding.login_subtitle }}</p>
       }
     } @else if (portal === 'platform') {
-      <h1 class="text-xl font-bold text-slate-900">Mi Cole — Plataforma</h1>
-      <p class="mt-1 text-sm text-slate-500">Acceso superadmin MCodeGT</p>
+      <h1 class="text-xl font-bold mc-text">Mi Cole — Plataforma</h1>
+      <p class="mt-1 text-sm mc-text-muted">Acceso superadmin MCodeGT</p>
     } @else {
-      <h1 class="text-xl font-bold text-slate-900">Iniciar sesión</h1>
+      <h1 class="text-xl font-bold mc-text">Iniciar sesión</h1>
     }
 
     <form class="mt-6 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
-      <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
+      <label class="flex flex-col gap-1 text-sm font-medium mc-text-muted">
         Correo
         <input type="email" class="mc-input" formControlName="email" autocomplete="username" />
       </label>
-      <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
+      <label class="flex flex-col gap-1 text-sm font-medium mc-text-muted">
         Contraseña
         <input
           type="password"
@@ -33,17 +34,17 @@
         />
       </label>
       @if (error()) {
-        <p class="text-sm text-red-600">{{ error() }}</p>
+        <p class="text-sm text-red-600 dark:text-red-400">{{ error() }}</p>
       }
       <button type="submit" class="mc-btn-primary w-full" [disabled]="loading() || form.invalid">
         {{ loading() ? 'Entrando…' : 'Entrar' }}
       </button>
     </form>
 
-    <p class="mt-5 text-center text-xs text-slate-500">
-      <a class="text-primary hover:underline" routerLink="/login/platform">Plataforma</a>
+    <p class="mt-5 text-center text-xs mc-text-subtle">
+      <a class="mc-text-accent hover:underline" routerLink="/login/platform">Plataforma</a>
       ·
-      <a class="text-primary hover:underline" routerLink="/login/staff/colegio-demo/sede-norte"
+      <a class="mc-text-accent hover:underline" routerLink="/login/staff/colegio-demo/sede-norte"
         >Staff demo</a
       >
     </p>

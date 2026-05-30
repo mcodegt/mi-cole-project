@@ -11,11 +11,11 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_token_payload
 from app.database import get_db
 from app.models.campus import Campus, MembershipCampus
-from app.models.edu import Parent
+from app.models.edu import Parent, Student
 from app.models.rbac import Permission, PlatformRoleAssignment, Role, RolePermission, SchoolMembership
 from app.models.school import School
 from app.schemas.auth import AuthPortal
-from app.services.plan_limits import assert_parent_portal_enabled
+from app.services.plan_limits import assert_parent_portal_enabled, assert_student_portal_enabled
 
 
 @dataclass(frozen=True)
@@ -25,6 +25,7 @@ class AuthzContext:
     school_id: Optional[UUID]
     membership_id: Optional[UUID]
     parent_id: Optional[UUID]
+    student_id: Optional[UUID]
     campus_id: Optional[UUID]
     permissions: FrozenSet[str]
     all_campuses: bool
@@ -101,6 +102,7 @@ def build_authz_context(
             school_id=None,
             membership_id=None,
             parent_id=None,
+            student_id=None,
             campus_id=None,
             permissions=_platform_permissions(db, user_id),
             all_campuses=True,
@@ -131,9 +133,48 @@ def build_authz_context(
             school_id=token_sid,
             membership_id=None,
             parent_id=pid,
+            student_id=None,
             campus_id=effective_campus,
             permissions=frozenset(
                 ("parent.dashboard.read", "parent.children.read", "parent.assignments.read")
+            ),
+            all_campuses=True,
+            allowed_campus_ids=frozenset(),
+        )
+
+    if portal == AuthPortal.student:
+        if not token_sid or not token.get("stid"):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Token student sin contexto")
+        stid = UUID(token["stid"])
+        effective_sid = UUID(x_school_id) if x_school_id else token_sid
+        if effective_sid != token_sid:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="X-School-Id no coincide con el token"
+            )
+        student = db.get(Student, stid)
+        if not student or student.user_id != user_id or student.school_id != token_sid:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso estudiante inválido")
+        assert_student_portal_enabled(db, token_sid)
+        effective_campus = UUID(x_campus_id) if x_campus_id else token_campus
+        if effective_campus is not None:
+            campus = db.get(Campus, effective_campus)
+            if not campus or campus.school_id != token_sid:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sede no pertenece al colegio")
+        return AuthzContext(
+            user_id=user_id,
+            portal=portal,
+            school_id=token_sid,
+            membership_id=None,
+            parent_id=None,
+            student_id=stid,
+            campus_id=effective_campus,
+            permissions=frozenset(
+                (
+                    "student.dashboard.read",
+                    "student.assignments.read",
+                    "student.submissions.read",
+                    "student.submissions.write",
+                )
             ),
             all_campuses=True,
             allowed_campus_ids=frozenset(),
@@ -167,6 +208,7 @@ def build_authz_context(
             school_id=token_sid,
             membership_id=token_mid,
             parent_id=None,
+            student_id=None,
             campus_id=effective_campus,
             permissions=permissions,
             all_campuses=all_campuses,
@@ -180,6 +222,7 @@ def build_authz_context(
             school_id=token_sid,
             membership_id=token_mid,
             parent_id=None,
+            student_id=None,
             campus_id=None,
             permissions=permissions,
             all_campuses=all_campuses,
@@ -261,6 +304,22 @@ def require_parent_portal():
 
 StaffAuthz = Annotated[AuthzContext, Depends(require_portal(AuthPortal.staff))]
 ParentAuthz = Annotated[AuthzContext, Depends(require_parent_portal())]
+
+
+def require_student_portal():
+    portal_dep = require_portal(AuthPortal.student)
+
+    def dependency(
+        ctx: AuthzContext = Depends(portal_dep),
+    ) -> AuthzContext:
+        if ctx.student_id is None or ctx.school_id is None:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Contexto estudiante requerido")
+        return ctx
+
+    return dependency
+
+
+StudentAuthz = Annotated[AuthzContext, Depends(require_student_portal())]
 
 
 def require_staff_with_billing(permission: str):

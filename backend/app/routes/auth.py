@@ -9,6 +9,7 @@ from app.core.dependencies import client_ip, get_current_token_payload
 from app.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.schemas.auth import (
+    ChangePasswordRequest,
     LoginRequest,
     LoginResponse,
     LogoutRequest,
@@ -16,16 +17,19 @@ from app.schemas.auth import (
     MembershipSummary,
     RefreshRequest,
     SwitchCampusRequest,
+    SwitchPortalRequest,
     SwitchSchoolRequest,
 )
 from app.services.auth_service import (
     AuthError,
     build_me,
+    change_password,
     list_staff_memberships,
     login,
     logout,
     refresh,
     switch_campus,
+    switch_portal,
     switch_school,
 )
 
@@ -154,3 +158,43 @@ def auth_switch_campus(
         )
     except AuthError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=exc.message) from exc
+
+
+@router.post("/switch-portal", response_model=LoginResponse)
+def auth_switch_portal(
+    body: SwitchPortalRequest,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> LoginResponse:
+    try:
+        return switch_portal(
+            db,
+            user_id=user_id,
+            portal=body.portal,
+            school_slug=body.school_slug,
+            campus_slug=body.campus_slug,
+            settings=settings,
+            user_agent=request.headers.get("user-agent"),
+            ip=client_ip(request),
+        )
+    except AuthError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=exc.message) from exc
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def auth_change_password(
+    body: ChangePasswordRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+) -> None:
+    try:
+        change_password(
+            db,
+            user_id=user_id,
+            current_password=body.current_password,
+            new_password=body.new_password,
+        )
+    except AuthError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=exc.message) from exc

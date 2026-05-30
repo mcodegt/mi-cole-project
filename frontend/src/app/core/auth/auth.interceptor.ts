@@ -32,6 +32,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     if (session.campusId) {
       headers = headers.set('X-Campus-Id', session.campusId);
     }
+  } else if (session?.portal === 'student') {
+    headers = headers.set('X-Portal', 'student');
+    if (session.schoolId) {
+      headers = headers.set('X-School-Id', session.schoolId);
+    }
+    if (session.campusId) {
+      headers = headers.set('X-Campus-Id', session.campusId);
+    }
   }
 
   const cloned = req.clone({ headers });
@@ -65,6 +73,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             }
           } else if (updated?.portal === 'parent') {
             retryHeaders = retryHeaders.set('X-Portal', 'parent');
+            if (updated.schoolId) {
+              retryHeaders = retryHeaders.set('X-School-Id', updated.schoolId);
+            }
+            if (updated.campusId) {
+              retryHeaders = retryHeaders.set('X-Campus-Id', updated.campusId);
+            }
+          } else if (updated?.portal === 'student') {
+            retryHeaders = retryHeaders.set('X-Portal', 'student');
             if (updated.schoolId) {
               retryHeaders = retryHeaders.set('X-School-Id', updated.schoolId);
             }

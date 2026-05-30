@@ -5,6 +5,7 @@ export interface UserInfo {
   email: string;
   full_name: string;
   is_active: boolean;
+  must_change_password?: boolean;
 }
 
 export interface PlatformContext {
@@ -29,6 +30,15 @@ export interface ParentMeContext {
   campus_name?: string;
 }
 
+export interface StudentMeContext {
+  student_id: string;
+  school_id: string;
+  school_slug: string;
+  school_name: string;
+  campus_name?: string;
+  student_code?: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   refresh_token: string;
@@ -39,7 +49,9 @@ export interface LoginResponse {
   sid?: string;
   mid?: string;
   pid?: string;
+  stid?: string;
   campus_id?: string;
+  portals?: string[];
 }
 
 export interface MeResponse {
@@ -48,10 +60,13 @@ export interface MeResponse {
   platform?: PlatformContext;
   staff?: StaffMeContext;
   parent?: ParentMeContext;
+  student?: StudentMeContext;
   sid?: string;
   mid?: string;
   pid?: string;
+  stid?: string;
   campus_id?: string;
+  portals?: string[];
 }
 
 export interface MembershipSummary {
@@ -71,10 +86,14 @@ export interface AuthSession {
   schoolId?: string;
   membershipId?: string;
   parentId?: string;
+  studentId?: string;
   campusId?: string;
   staff?: StaffMeContext;
   parent?: ParentMeContext;
+  student?: StudentMeContext;
   platform?: PlatformContext;
+  mustChangePassword?: boolean;
+  portals?: string[];
 }
 
 export interface LoginContextResponse {

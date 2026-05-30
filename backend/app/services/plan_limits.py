@@ -175,3 +175,13 @@ def assert_parent_portal_enabled(db: Session, school_id: uuid.UUID) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Portal de padres no incluido en el plan {plan_name}",
         )
+
+
+def assert_student_portal_enabled(db: Session, school_id: uuid.UUID) -> None:
+    usage = get_plan_limits_usage_for_school(db, school_id)
+    if not usage.features.student_portal:
+        plan_name = usage.plan.name if usage.plan else "sin plan"
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Portal de estudiantes no incluido en el plan {plan_name}",
+        )

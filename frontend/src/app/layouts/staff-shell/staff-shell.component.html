@@ -1,86 +1,47 @@
-<div class="flex min-h-screen">
-  <aside
-    class="flex w-56 shrink-0 flex-col gap-4 bg-sidebar-staff p-4 text-[var(--mc-sidebar-text)]"
-  >
-    <div>
-      <p class="text-xs uppercase tracking-wider text-slate-400">Mi Cole</p>
-      <p class="text-lg font-bold text-white">{{ auth.session()?.staff?.school_name ?? 'Staff' }}</p>
-    </div>
+<div class="mc-app-shell">
+  <mc-modern-sidebar
+    accent="staff"
+    brandTitle="Mi Cole"
+    [brandSubtitle]="auth.session()?.staff?.school_name ?? 'Staff'"
+    [navItems]="navItems()"
+    [userName]="auth.session()?.user?.full_name ?? ''"
+    [userEmail]="auth.session()?.user?.email ?? ''"
+    (logoutClick)="logout()"
+  />
 
-    @if (restricted()) {
-      <div class="rounded-lg bg-amber-400/90 px-3 py-2 text-xs font-medium text-amber-950">
-        Modo facturación — acceso limitado
+  <div class="mc-app-shell__main">
+    <header class="mc-app-shell__header">
+      <div class="flex flex-wrap items-center gap-3">
+        @if (restricted()) {
+          <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+            Modo facturación — acceso limitado
+          </span>
+        }
+        <div class="flex items-center gap-2 text-sm">
+          <span class="mc-text-muted">Sede</span>
+          <p-select
+            [options]="campuses()"
+            [(ngModel)]="selectedCampusId"
+            optionLabel="name"
+            optionValue="id"
+            (ngModelChange)="onCampusChange()"
+            styleClass="w-48"
+          />
+        </div>
       </div>
-      <nav class="flex flex-col gap-1">
-        <a routerLink="/app/subscription" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-          <i class="pi pi-wallet"></i> Suscripción
-        </a>
-      </nav>
-    } @else {
-      <nav class="flex flex-col gap-1">
-        <a
-          routerLink="/app"
-          routerLinkActive="mc-nav-link-active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="mc-nav-link"
-        >
-          <i class="pi pi-home"></i> Inicio
-        </a>
-        @if (can('school.campuses.read')) {
-          <a routerLink="/app/campuses" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-            <i class="pi pi-building"></i> Sedes
-          </a>
+      <div class="flex items-center gap-3">
+        @if (canSwitchToParent()) {
+          <button
+            type="button"
+            class="text-sm font-medium mc-text-accent hover:underline"
+            (click)="switchToParentPortal()"
+          >
+            Portal padres
+          </button>
         }
-        @if (can('school.students.read')) {
-          <a routerLink="/app/students" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-            <i class="pi pi-users"></i> Estudiantes
-          </a>
-        }
-        @if (can('school.parents.read')) {
-          <a routerLink="/app/parents" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-            <i class="pi pi-user"></i> Padres
-          </a>
-        }
-        @if (can('school.team.read')) {
-          <a routerLink="/app/team" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-            <i class="pi pi-id-card"></i> Equipo
-          </a>
-        }
-        @if (can('school.subscription.read')) {
-          <a routerLink="/app/subscription" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-            <i class="pi pi-credit-card"></i> Suscripción
-          </a>
-        }
-      </nav>
-    }
-
-    <button
-      type="button"
-      class="mt-auto rounded-lg border border-slate-500 px-3 py-2 text-sm text-slate-200 hover:bg-white/10"
-      (click)="logout()"
-    >
-      Salir
-    </button>
-  </aside>
-
-  <div class="flex min-w-0 flex-1 flex-col">
-    <header
-      class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3"
-    >
-      <div class="flex items-center gap-2 text-sm">
-        <span class="text-slate-500">Sede</span>
-        <p-select
-          [options]="campuses()"
-          [(ngModel)]="selectedCampusId"
-          optionLabel="name"
-          optionValue="id"
-          (ngModelChange)="onCampusChange()"
-          styleClass="w-48"
-        />
       </div>
-      <span class="text-sm font-medium text-slate-700">{{ auth.session()?.user?.full_name }}</span>
     </header>
-    <main class="flex-1 overflow-auto p-5">
+    <main class="mc-app-shell__content">
       <router-outlet />
     </main>
   </div>

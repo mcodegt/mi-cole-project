@@ -43,16 +43,16 @@ interface DashboardData {
       </div>
 
       <div class="mc-card">
-        <h2 class="mb-4 text-base font-semibold text-slate-900">Mis hijos</h2>
+        <h2 class="mb-4 text-base font-semibold mc-text">Mis hijos</h2>
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           @for (child of d.children; track child.id) {
             <a
               [routerLink]="['/parent/assignments']"
               [queryParams]="{ student_id: child.id }"
-              class="rounded-lg border border-slate-200 p-4 transition hover:border-primary hover:shadow-sm"
+              class="mc-touch-card"
             >
-              <p class="font-medium text-slate-900">{{ child.full_name }}</p>
-              <p class="text-sm text-slate-500">{{ child.code || 'Sin código' }}</p>
+              <p class="font-medium mc-text">{{ child.full_name }}</p>
+              <p class="text-sm mc-text-muted">{{ child.code || 'Sin código' }}</p>
               <p-tag
                 class="mt-2"
                 [value]="child.status"

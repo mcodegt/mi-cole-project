@@ -1,0 +1,100 @@
+<div class="mc-app-shell mc-app-shell--portal">
+
+  <div class="hidden shrink-0 md:block">
+
+    <mc-modern-sidebar
+
+      accent="student"
+
+      brandTitle="Portal estudiantes"
+
+      [brandSubtitle]="auth.session()?.student?.school_name ?? ''"
+
+      brandIcon="pi pi-book"
+
+      [navItems]="navItems"
+
+      [showSearch]="false"
+
+      [userName]="auth.session()?.user?.full_name ?? ''"
+
+      [userEmail]="auth.session()?.user?.email ?? ''"
+
+      (logoutClick)="logout()"
+
+    />
+
+  </div>
+
+
+
+  <div class="mc-app-shell__main mc-app-shell__main--portal">
+
+    <mc-portal-mobile-header
+
+      class="md:hidden"
+
+      accent="student"
+
+      brandTitle="Portal estudiantes"
+
+      [brandSubtitle]="auth.session()?.student?.school_name ?? ''"
+
+      brandIcon="pi pi-book"
+
+      [userName]="auth.session()?.user?.full_name ?? ''"
+
+      [userEmail]="auth.session()?.user?.email ?? ''"
+
+      (logoutClick)="logout()"
+
+    />
+
+
+
+    <header class="mc-app-shell__header hidden md:flex">
+
+      <div>
+
+        <p class="text-sm font-medium mc-text">
+
+          {{ auth.session()?.user?.full_name }}
+
+          @if (auth.session()?.student?.student_code) {
+
+            <span class="ml-2 text-xs font-normal mc-text-muted">
+
+              {{ auth.session()?.student?.student_code }}
+
+            </span>
+
+          }
+
+        </p>
+
+        @if (auth.session()?.student?.campus_name) {
+
+          <p class="text-xs mc-text-muted">{{ auth.session()?.student?.campus_name }}</p>
+
+        }
+
+      </div>
+
+    </header>
+
+
+
+    <main class="mc-app-shell__content mc-app-shell__content--portal">
+
+      <router-outlet />
+
+    </main>
+
+  </div>
+
+
+
+  <mc-mobile-bottom-nav class="md:hidden" accent="student" [items]="navItems" />
+
+</div>
+

@@ -7,33 +7,153 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply antialiased;
+    background: var(--mc-app-shell-bg);
+    color: var(--mc-text);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--mc-text);
+  }
+
+  label {
+    color: var(--mc-text-muted);
+  }
+}
+
+@layer utilities {
+  .mc-text {
+    color: var(--mc-text);
+  }
+
+  .mc-text-muted {
+    color: var(--mc-text-muted);
+  }
+
+  .mc-text-subtle {
+    color: var(--mc-text-subtle);
+  }
+
+  .mc-text-accent {
+    color: var(--mc-primary-text);
   }
 }
 
 @layer components {
   .mc-card {
-    @apply rounded-lg border border-slate-200 bg-white p-5 shadow-sm;
-  }
-
-  .mc-nav-link {
-    @apply flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white;
-  }
-
-  .mc-nav-link-active {
-    @apply bg-white/10 text-white;
+    @apply rounded-xl p-5 shadow-sm;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
   }
 
   .mc-input {
-    @apply w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-primary focus:ring-2;
+    @apply w-full rounded-lg px-3 py-2 text-sm outline-none ring-primary focus:ring-2;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    color: var(--mc-text);
   }
 
-  .bg-sidebar-staff {
-    background-color: var(--mc-sidebar-bg-staff);
+  .mc-app-shell {
+    @apply flex min-h-screen;
+    background: var(--mc-app-shell-bg);
   }
 
-  .bg-sidebar-parent {
-    background-color: var(--mc-sidebar-bg-parent);
+  .mc-app-shell--portal {
+    @apply flex-col md:flex-row;
+  }
+
+  .mc-app-shell__main {
+    @apply flex min-w-0 flex-1 flex-col;
+    margin: 0.75rem 0.75rem 0.75rem 0;
+  }
+
+  .mc-app-shell__main--portal {
+    margin: 0;
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .mc-app-shell__main--portal {
+      margin: 0.75rem 0.75rem 0.75rem 0;
+      padding-bottom: 0;
+    }
+  }
+
+  .mc-app-shell__header {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3 shadow-sm;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+  }
+
+  .mc-app-shell__content {
+    @apply mt-3 flex-1 overflow-auto rounded-2xl p-5 shadow-sm;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+  }
+
+  .mc-app-shell__content--portal {
+    @apply mt-0 rounded-none border-0 p-4 shadow-none;
+  }
+
+  @media (min-width: 768px) {
+    .mc-app-shell__content--portal {
+      @apply mt-3 rounded-2xl border p-5 shadow-sm;
+      border-color: var(--mc-border);
+      background: var(--mc-surface);
+    }
+  }
+
+  .mc-touch-card {
+    @apply block rounded-xl p-4 transition active:scale-[0.99];
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    color: var(--mc-text);
+    text-decoration: none;
+  }
+
+  .mc-touch-card:hover {
+    border-color: var(--mc-primary);
+    color: var(--mc-text);
+  }
+
+  /* PrimeNG tables & forms inside app surfaces */
+  .mc-card .p-datatable,
+  .mc-app-shell__content .p-datatable {
+    color: var(--mc-text);
+  }
+
+  .dark .mc-card .p-datatable .p-datatable-thead > tr > th,
+  .dark .mc-app-shell__content .p-datatable .p-datatable-thead > tr > th {
+    color: var(--mc-text-muted);
+  }
+
+  .dark .mc-card .p-datatable .p-datatable-tbody > tr > td,
+  .dark .mc-app-shell__content .p-datatable .p-datatable-tbody > tr > td {
+    color: var(--mc-text);
+  }
+
+  .dark .mc-card .p-datatable .p-datatable-tbody > tr:hover {
+    background: var(--mc-surface-muted);
+  }
+
+  .dark .p-select,
+  .dark .p-inputtext,
+  .dark .p-textarea {
+    color: var(--mc-text);
+  }
+
+  .dark .p-dialog .p-dialog-header,
+  .dark .p-dialog .p-dialog-content {
+    color: var(--mc-text);
+  }
+
+  .dark .p-dialog .p-dialog-header {
+    color: var(--mc-text);
   }
 
   .mc-btn-primary {

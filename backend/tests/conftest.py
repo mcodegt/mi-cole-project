@@ -98,7 +98,11 @@ def demo_users(db_session: Session):
     from app.models.rbac import Role, SchoolMembership
     from app.models.user import User
 
+    from app.models.school import School
+
     school_id = uuid.UUID(DEMO_SCHOOL_ID)
+    school = db_session.get(School, school_id)
+    school.subscription_plan_id = uuid.UUID("e5000001-0000-4000-8000-000000000002")
     campus_norte = db_session.get(Campus, uuid.UUID(DEMO_CAMPUS_NORTE))
     owner_role = db_session.get(Role, uuid.UUID("d4000003-0000-4000-8000-000000000001"))
     operator_role = db_session.get(Role, uuid.UUID("d4000003-0000-4000-8000-000000000003"))
@@ -160,15 +164,29 @@ def demo_users(db_session: Session):
         if not exists:
             db_session.add(StudentParent(student_id=sid, parent_id=parent.id))
 
+    student_user = User(
+        email="student@colegio-demo.dev",
+        password_hash=hash_password(DEMO_PASSWORD),
+        full_name="Estudiante Demo 1",
+        is_active=True,
+    )
+    db_session.add(student_user)
+    db_session.flush()
+    student = db_session.get(Student, uuid.UUID("f8000001-0000-4000-8000-000000000001"))
+    if student:
+        student.user_id = student_user.id
+
     db_session.flush()
     return {
         "owner": {"email": DEMO_OWNER_EMAIL, "password": DEMO_PASSWORD},
         "operator": {"email": DEMO_OPERATOR_EMAIL, "password": DEMO_PASSWORD},
         "parent": {"email": "parent@colegio-demo.dev", "password": DEMO_PASSWORD},
+        "student": {"email": "student@colegio-demo.dev", "password": DEMO_PASSWORD},
         "school_id": DEMO_SCHOOL_ID,
         "campus_norte": DEMO_CAMPUS_NORTE,
         "campus_sur": DEMO_CAMPUS_SUR,
         "parent_id": "f8000004-0000-4000-8000-000000000001",
+        "student_id": "f8000001-0000-4000-8000-000000000001",
     }
 
 

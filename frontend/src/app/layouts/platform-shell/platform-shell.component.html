@@ -1,30 +1,20 @@
-<div class="flex min-h-screen">
-  <aside class="flex w-56 shrink-0 flex-col gap-4 bg-sidebar-platform p-4 text-[var(--mc-sidebar-text)]">
-    <div>
-      <p class="text-xs uppercase tracking-wider text-slate-400">MCodeGT</p>
-      <p class="text-lg font-bold text-white">Mi Cole Platform</p>
-    </div>
-    <nav class="flex flex-col gap-1">
-      <a routerLink="/platform/schools" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-        <i class="pi pi-building"></i> Colegios
-      </a>
-      <a routerLink="/platform/billing" routerLinkActive="mc-nav-link-active" class="mc-nav-link">
-        <i class="pi pi-inbox"></i> Cola facturación
-      </a>
-    </nav>
-    <button
-      type="button"
-      class="mt-auto rounded-lg border border-slate-500 px-3 py-2 text-sm text-slate-200 hover:bg-white/10"
-      (click)="logout()"
-    >
-      Salir
-    </button>
-  </aside>
-  <div class="flex min-w-0 flex-1 flex-col">
-    <header class="border-b border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700">
-      {{ auth.session()?.user?.full_name }}
+<div class="mc-app-shell">
+  <mc-modern-sidebar
+    accent="platform"
+    brandTitle="Mi Cole"
+    brandSubtitle="Platform"
+    brandIcon="pi pi-server"
+    [navItems]="navItems"
+    [userName]="auth.session()?.user?.full_name ?? ''"
+    [userEmail]="auth.session()?.user?.email ?? ''"
+    (logoutClick)="logout()"
+  />
+
+  <div class="mc-app-shell__main">
+    <header class="mc-app-shell__header">
+      <p class="text-sm font-medium mc-text">Administración MCodeGT</p>
     </header>
-    <main class="flex-1 overflow-auto p-5">
+    <main class="mc-app-shell__content">
       <router-outlet />
     </main>
   </div>

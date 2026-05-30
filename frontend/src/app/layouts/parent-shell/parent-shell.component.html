@@ -1,47 +1,86 @@
-<div class="flex min-h-screen flex-col md:flex-row">
-  <aside
-    class="flex shrink-0 flex-col gap-4 bg-sidebar-parent p-4 text-[var(--mc-sidebar-text)] md:w-56"
-  >
-    <div>
-      <p class="text-xs uppercase tracking-wider text-emerald-200/80">Mi Cole</p>
-      <p class="text-lg font-bold text-white">Portal padres</p>
-      <p class="mt-1 text-sm text-emerald-100/90">
-        {{ auth.session()?.parent?.school_name }}
-      </p>
-      @if (auth.session()?.parent?.campus_name) {
-        <p class="text-xs text-emerald-200/70">{{ auth.session()?.parent?.campus_name }}</p>
-      }
-    </div>
+<div class="mc-app-shell mc-app-shell--portal">
 
-    <nav class="flex flex-row gap-2 md:flex-col md:gap-1">
-      <a
-        routerLink="/parent"
-        routerLinkActive="mc-nav-link-active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="mc-nav-link flex-1 md:flex-none"
-      >
-        <i class="pi pi-home"></i> Inicio
-      </a>
-      <a routerLink="/parent/assignments" routerLinkActive="mc-nav-link-active" class="mc-nav-link flex-1 md:flex-none">
-        <i class="pi pi-book"></i> Tareas
-      </a>
-    </nav>
+  <div class="hidden shrink-0 md:block">
 
-    <button
-      type="button"
-      class="mt-auto rounded-lg border border-emerald-600 px-3 py-2 text-sm text-emerald-100 hover:bg-white/10 md:mt-auto"
-      (click)="logout()"
-    >
-      Salir
-    </button>
-  </aside>
+    <mc-modern-sidebar
 
-  <div class="flex min-w-0 flex-1 flex-col">
-    <header class="border-b border-slate-200 bg-white px-4 py-3 md:px-5">
-      <span class="text-sm font-medium text-slate-700">{{ auth.session()?.user?.full_name }}</span>
-    </header>
-    <main class="flex-1 overflow-auto p-4 md:p-5">
-      <router-outlet />
-    </main>
+      accent="parent"
+
+      brandTitle="Portal padres"
+
+      [brandSubtitle]="auth.session()?.parent?.school_name ?? ''"
+
+      brandIcon="pi pi-heart"
+
+      [navItems]="navItems"
+
+      [showSearch]="false"
+
+      [userName]="auth.session()?.user?.full_name ?? ''"
+
+      [userEmail]="auth.session()?.user?.email ?? ''"
+
+      (logoutClick)="logout()"
+
+    />
+
   </div>
+
+
+
+  <div class="mc-app-shell__main mc-app-shell__main--portal">
+
+    <mc-portal-mobile-header
+
+      class="md:hidden"
+
+      accent="parent"
+
+      brandTitle="Portal padres"
+
+      [brandSubtitle]="auth.session()?.parent?.school_name ?? ''"
+
+      brandIcon="pi pi-heart"
+
+      [userName]="auth.session()?.user?.full_name ?? ''"
+
+      [userEmail]="auth.session()?.user?.email ?? ''"
+
+      (logoutClick)="logout()"
+
+    />
+
+
+
+    <header class="mc-app-shell__header hidden md:flex">
+
+      <div>
+
+        <p class="text-sm font-medium mc-text">{{ auth.session()?.user?.full_name }}</p>
+
+        @if (auth.session()?.parent?.campus_name) {
+
+          <p class="text-xs mc-text-muted">{{ auth.session()?.parent?.campus_name }}</p>
+
+        }
+
+      </div>
+
+    </header>
+
+
+
+    <main class="mc-app-shell__content mc-app-shell__content--portal">
+
+      <router-outlet />
+
+    </main>
+
+  </div>
+
+
+
+  <mc-mobile-bottom-nav class="md:hidden" accent="parent" [items]="navItems" />
+
 </div>
+

@@ -14,8 +14,8 @@ import { environment } from '../../../../environments/environment';
     <ul class="mc-card divide-y divide-slate-100 p-0">
       @for (c of campuses(); track c.id) {
         <li class="flex items-center justify-between px-5 py-3">
-          <span class="font-medium text-slate-800">{{ c.name }}</span>
-          <span class="text-sm text-slate-500">{{ c.slug }}</span>
+          <span class="font-medium mc-text">{{ c.name }}</span>
+          <span class="text-sm mc-text-muted">{{ c.slug }}</span>
         </li>
       }
     </ul>

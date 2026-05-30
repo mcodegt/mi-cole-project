@@ -4,8 +4,20 @@
   <meta charset="utf-8">
   <title>MiCole</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      var theme = localStorage.getItem('mc-theme');
+      var dark =
+        theme === 'dark' ||
+        (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

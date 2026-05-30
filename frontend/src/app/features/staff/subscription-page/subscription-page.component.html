@@ -5,28 +5,28 @@
 @if (dashboard(); as d) {
   <div class="mc-card mb-4 space-y-4">
     <div class="flex flex-wrap items-center gap-3">
-      <span class="text-sm text-slate-500">Plan</span>
-      <span class="font-semibold text-slate-900">{{ d.plan?.name ?? 'Sin plan' }}</span>
+      <span class="text-sm mc-text-muted">Plan</span>
+      <span class="font-semibold mc-text">{{ d.plan?.name ?? 'Sin plan' }}</span>
     </div>
     <div class="flex flex-wrap items-center gap-3">
-      <span class="text-sm text-slate-500">Modo acceso</span>
+      <span class="text-sm mc-text-muted">Modo acceso</span>
       <p-tag [value]="d.billing.billing_access_mode" />
     </div>
     @if (d.billing.current_period) {
-      <p class="text-sm text-slate-600">
+      <p class="text-sm mc-text-muted">
         Período actual: {{ d.billing.current_period.period_month }}/{{ d.billing.current_period.period_year }}
       </p>
     }
-    <p class="text-sm text-slate-600">
+    <p class="text-sm mc-text-muted">
       Estudiantes: {{ d.usage['students'].current }} / {{ d.usage['students'].max ?? '∞' }}
     </p>
     @if (d.billing.has_pending_evidence) {
-      <div class="rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900">
+      <div class="rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:bg-blue-950/50 dark:text-blue-200">
         Hay un comprobante en revisión por el equipo de plataforma.
       </div>
     }
     @if (auth.isBillingRestricted()) {
-      <div class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      <div class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
         Acceso limitado: suba un comprobante de pago para restaurar el panel completo.
       </div>
     }
@@ -35,8 +35,8 @@
 
 @if (canUpload()) {
   <div class="mc-card">
-    <h2 class="mb-1 text-base font-semibold text-slate-900">Comprobante de pago</h2>
-    <p class="mb-4 text-sm text-slate-500">PDF o imagen (máx. 5 MB). Quedará pendiente de aprobación.</p>
+    <h2 class="mb-1 text-base font-semibold mc-text">Comprobante de pago</h2>
+    <p class="mb-4 text-sm mc-text-muted">PDF o imagen (máx. 5 MB). Quedará pendiente de aprobación.</p>
     <p-fileUpload
       mode="basic"
       chooseLabel="Seleccionar archivo"

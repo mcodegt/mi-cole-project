@@ -26,6 +26,7 @@ class StudentRead(BaseModel):
     full_name: str
     code: Optional[str]
     status: StudentStatus
+    portal_access: bool = False
 
     model_config = {"from_attributes": True}
 
@@ -58,5 +59,6 @@ class ParentRead(BaseModel):
     phone: Optional[str]
     relationship: ParentRelationship
     status: ParentStatus
+    portal_access: bool = False
 
     model_config = {"from_attributes": True}

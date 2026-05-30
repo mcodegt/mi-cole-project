@@ -1,8 +1,9 @@
 # Mi Cole — Frontend (Angular 19)
 
-SPA con cuatro portales lazy-loaded: **platform**, **staff** (`/app`), **parent**, **student**.
+SPA con cuatro portales lazy-loaded: **platform**, **staff** (`/app`), **parent**, **student`.
 
-**Guía de estilos (Tailwind + PrimeNG, tokens, portales):** [`../../mi-cole-docs/design-system/README.md`](../../mi-cole-docs/design-system/README.md)
+**Guía de estilos:** [`../../mi-cole-docs/design-system/README.md`](../../mi-cole-docs/design-system/README.md)  
+**Evolución / monorepo (fase 13):** [`../../mi-cole-docs/architecture/frontend-evolution.md`](../../mi-cole-docs/architecture/frontend-evolution.md)
 
 **Stack UI:** Tailwind 3 · PrimeNG 19 (Aura) · PrimeIcons · componentes shared `mc-page-header`, `mc-kpi-card`.
 
@@ -42,18 +43,21 @@ El `Dockerfile` del monolito copia esa carpeta a `STATIC_ROOT`.
 | Padres | `/login/parent/colegio-demo/sede-norte` |
 | Estudiantes | `/login/student/colegio-demo/sede-norte` |
 
-Tras login, branding se carga con `GET /api/v1/public/login-context`.
+Tras login, branding se carga con `GET /api/v1/public/login-context`.  
+Invitados con contraseña temporal → `/change-password` antes del portal.
 
 ## Matriz guards
 
 | Ruta | Guards |
 |------|--------|
 | `/login/**` | — |
+| `/change-password` | `authGuard` |
 | `/platform/**` | `authGuard`, `platformGuard` |
 | `/app/**` | `authGuard`, `staffContextGuard` |
 | `/app/*` (excepto subscription) | + `billingAllowedGuard` si modo restringido |
 | `/app/subscription` | siempre accesible con staff |
-| `/parent/**`, `/student/**` | `authGuard` (portales completos en fases 10–11) |
+| `/parent/**` | `authGuard`, `parentGuard` |
+| `/student/**` | `authGuard`, `studentGuard` |
 
 ## Interceptor
 
@@ -61,6 +65,7 @@ Envía en cada request autenticado:
 
 - `Authorization: Bearer …`
 - Staff: `X-Portal`, `X-School-Id`, `X-Campus-Id`
+- Parent / Student: `X-Portal`, `X-School-Id`, `X-Campus-Id`
 - Platform: `X-Portal: platform`
 
 Ante **401**, intenta `POST /auth/refresh` una vez y reintenta; si falla, limpia sesión.
@@ -74,7 +79,10 @@ Documento completo: [`../../mi-cole-docs/USUARIOS-DEMO.md`](../../mi-cole-docs/U
 | Superadmin | `/login/platform` | `superadmin@micole.dev` / `ChangeMe123!` |
 | Owner staff | `/login/staff/colegio-demo/sede-norte` | `owner@colegio-demo.dev` / `Demo123!` |
 | Operador | `/login/staff/colegio-demo/sede-norte` | `operator@colegio-demo.dev` / `Demo123!` |
-| Padre / Estudiante | — | Reservados fases 10–11 (ver doc) |
+| Padre | `/login/parent/colegio-demo/sede-norte` | `parent@colegio-demo.dev` / `Demo123!` |
+| Estudiante | `/login/student/colegio-demo/sede-norte` | `student@colegio-demo.dev` / `Demo123!` |
+
+Invitaciones staff: `/app/parents` o `/app/students` → botón **Invitar** (contraseña temporal en logs del backend `[INVITE]`).
 
 ## Demo facturación (UI-2)
 
@@ -89,9 +97,15 @@ src/app/
   core/auth/          AuthService, guards, interceptor
   layouts/            *-shell (nav + outlet)
   features/
-    auth/             login-page
+    auth/             login-page, change-password
     platform/         schools, billing queue
-    staff/            dashboard, campuses, students, team, subscription
-    parent/           placeholder fase 10
-    student/          placeholder fase 11
+    staff/            dashboard, campuses, students, parents, team, subscription
+    parent/           dashboard, assignments
+    student/          dashboard, assignments, detail + entrega
+  shared/             mc-page-header, mc-kpi-card
 ```
+
+## ¿Cuándo partir en monorepo?
+
+Hoy **~13 pantallas** en total — permanecer en SPA único.  
+Ver criterios y roadmap: [`architecture/frontend-evolution.md`](../../mi-cole-docs/architecture/frontend-evolution.md).

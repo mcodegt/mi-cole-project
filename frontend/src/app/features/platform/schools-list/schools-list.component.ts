@@ -47,7 +47,7 @@ interface SchoolRow {
         <ng-template #body let-s>
           <tr>
             <td class="font-medium">{{ s.name }}</td>
-            <td>{{ s.slug }}</td>
+            <td class="mc-text-subtle">{{ s.slug }}</td>
             <td><p-tag [value]="s.status" /></td>
             <td>{{ s.billing_access_mode }}</td>
           </tr>

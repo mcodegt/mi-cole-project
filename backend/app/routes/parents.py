@@ -11,6 +11,7 @@ from app.database import get_db
 from app.schemas.campus import PaginatedResponse
 from app.schemas.edu import ParentCreate, ParentRead
 from app.schemas.edu_updates import ParentUpdate
+from app.schemas.invite import PortalInviteRequest, PortalInviteResponse
 from app.services.edu_service import (
     create_parent,
     delete_parent,
@@ -19,6 +20,7 @@ from app.services.edu_service import (
     parent_to_read,
     update_parent,
 )
+from app.services.invite_service import invite_parent
 
 router = APIRouter(prefix="/parents", tags=["parents"])
 
@@ -80,3 +82,13 @@ def delete_parent_route(
 ) -> Response:
     delete_parent(db, ctx, parent_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{parent_id}/invite", response_model=PortalInviteResponse, status_code=status.HTTP_201_CREATED)
+def invite_parent_route(
+    parent_id: UUID,
+    body: PortalInviteRequest,
+    db: Session = Depends(get_db),
+    ctx: AuthzContext = Depends(require_staff_with_billing("school.parents.write")),
+) -> PortalInviteResponse:
+    return invite_parent(db, ctx, parent_id=parent_id, body=body)

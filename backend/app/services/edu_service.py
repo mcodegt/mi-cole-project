@@ -24,6 +24,19 @@ def parent_to_read(parent: Parent) -> ParentRead:
         phone=parent.phone,
         relationship=ParentRelationship(parent.relation_type),
         status=ParentStatus(parent.parent_status),
+        portal_access=parent.user_id is not None,
+    )
+
+
+def student_to_read(student: Student) -> StudentRead:
+    return StudentRead(
+        id=student.id,
+        school_id=student.school_id,
+        campus_id=student.campus_id,
+        full_name=student.full_name,
+        code=student.code,
+        status=student.status,
+        portal_access=student.user_id is not None,
     )
 
 
@@ -97,7 +110,7 @@ def create_student(db: Session, ctx: AuthzContext, body: StudentCreate) -> Stude
     db.add(student)
     db.commit()
     db.refresh(student)
-    return StudentRead.model_validate(student)
+    return student_to_read(student)
 
 
 def update_student(
@@ -111,7 +124,7 @@ def update_student(
         setattr(student, key, value)
     db.commit()
     db.refresh(student)
-    return StudentRead.model_validate(student)
+    return student_to_read(student)
 
 
 def delete_student(db: Session, ctx: AuthzContext, student_id: uuid.UUID) -> None:

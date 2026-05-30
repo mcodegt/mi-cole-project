@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth/auth.guard';
 import { parentGuard } from './core/auth/parent.guard';
+import { studentGuard } from './core/auth/student.guard';
 import { platformGuard } from './core/auth/platform.guard';
 import { staffContextGuard } from './core/auth/staff-context.guard';
 
@@ -17,6 +18,14 @@ export const routes: Routes = [
     path: 'login/:portal/:schoolSlug/:campusSlug',
     loadComponent: () =>
       import('./features/auth/login-page/login-page.component').then((m) => m.LoginPageComponent),
+  },
+  {
+    path: 'change-password',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/auth/change-password-page/change-password-page.component').then(
+        (m) => m.ChangePasswordPageComponent,
+      ),
   },
   {
     path: 'platform',
@@ -42,7 +51,7 @@ export const routes: Routes = [
   },
   {
     path: 'student',
-    canActivate: [authGuard],
+    canActivate: [authGuard, studentGuard],
     loadComponent: () =>
       import('./layouts/student-shell/student-shell.component').then((m) => m.StudentShellComponent),
     loadChildren: () => import('./features/student/student.routes').then((m) => m.STUDENT_ROUTES),

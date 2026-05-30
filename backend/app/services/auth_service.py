@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -12,7 +13,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.models.branding import LOGIN_PORTALS, CampusPortalBranding
 from app.models.campus import Campus, MembershipCampus
-from app.models.edu import Parent
+from app.models.edu import Parent, Student
 from app.models.rbac import Permission, PlatformRoleAssignment, Role, RolePermission, SchoolMembership
 from app.models.school import School
 from app.models.user import RefreshToken, User
@@ -24,6 +25,7 @@ from app.schemas.auth import (
     ParentMeContext,
     PlatformContext,
     StaffMeContext,
+    StudentMeContext,
     UserInfo,
 )
 from app.services.plan_limits import assert_parent_portal_enabled, get_plan_limits_usage_for_school
@@ -36,6 +38,16 @@ class AuthError(Exception):
         self.message = message
         self.code = code
         super().__init__(message)
+
+
+@dataclass
+class _PortalLoginContext:
+    sid: uuid.UUID | None = None
+    mid: uuid.UUID | None = None
+    pid: uuid.UUID | None = None
+    stid: uuid.UUID | None = None
+    campus_id: uuid.UUID | None = None
+    platform_ctx: PlatformContext | None = None
 
 
 def hash_password(password: str) -> str:
@@ -97,6 +109,7 @@ def _user_info(user: User) -> UserInfo:
         email=user.email,
         full_name=user.full_name,
         is_active=user.is_active,
+        must_change_password=user.must_change_password,
     )
 
 
@@ -108,6 +121,7 @@ def create_access_token(
     sid: uuid.UUID | None = None,
     mid: uuid.UUID | None = None,
     pid: uuid.UUID | None = None,
+    stid: uuid.UUID | None = None,
     campus_id: uuid.UUID | None = None,
 ) -> str:
     expire = _utcnow() + timedelta(minutes=settings.jwt_access_expire_minutes)
@@ -123,6 +137,8 @@ def create_access_token(
         payload["mid"] = str(mid)
     if pid:
         payload["pid"] = str(pid)
+    if stid:
+        payload["stid"] = str(stid)
     if campus_id:
         payload["campus_id"] = str(campus_id)
     return _encode(payload, settings.jwt_secret)
@@ -137,6 +153,7 @@ def create_refresh_token_record(
     sid: uuid.UUID | None = None,
     mid: uuid.UUID | None = None,
     pid: uuid.UUID | None = None,
+    stid: uuid.UUID | None = None,
     campus_id: uuid.UUID | None = None,
     user_agent: str | None = None,
     ip: str | None = None,
@@ -166,6 +183,8 @@ def create_refresh_token_record(
         payload["mid"] = str(mid)
     if pid:
         payload["pid"] = str(pid)
+    if stid:
+        payload["stid"] = str(stid)
     if campus_id:
         payload["campus_id"] = str(campus_id)
 
@@ -212,36 +231,52 @@ def _assert_membership_campus_access(db: Session, membership: SchoolMembership, 
         raise AuthError("Sin acceso a esta sede", "campus_forbidden")
 
 
-def login(
+def list_user_portals_at_school(db: Session, *, user_id: uuid.UUID, school_id: uuid.UUID) -> list[str]:
+    portals: list[str] = []
+    membership = db.scalar(
+        select(SchoolMembership).where(
+            SchoolMembership.user_id == user_id,
+            SchoolMembership.school_id == school_id,
+            SchoolMembership.status == "active",
+        )
+    )
+    if membership:
+        portals.append(AuthPortal.staff.value)
+    parent = db.scalar(
+        select(Parent).where(
+            Parent.user_id == user_id,
+            Parent.school_id == school_id,
+            Parent.parent_status == "active",
+        )
+    )
+    if parent:
+        portals.append(AuthPortal.parent.value)
+    student = db.scalar(
+        select(Student).where(
+            Student.user_id == user_id,
+            Student.school_id == school_id,
+            Student.status == "active",
+        )
+    )
+    if student:
+        portals.append(AuthPortal.student.value)
+    return portals
+
+
+def _resolve_portal_context(
     db: Session,
     *,
-    email: str,
-    password: str,
+    user: User,
     portal: AuthPortal,
-    school_slug: str | None = None,
-    campus_slug: str | None = None,
-    settings: Settings | None = None,
-    user_agent: str | None = None,
-    ip: str | None = None,
-) -> LoginResponse:
-    settings = settings or get_settings()
-    user = db.scalar(select(User).where(User.email == email.lower()))
-    if not user or not user.is_active:
-        raise AuthError("Credenciales inválidas", "invalid_credentials")
-    if not verify_password(password, user.password_hash):
-        raise AuthError("Credenciales inválidas", "invalid_credentials")
-
-    sid: uuid.UUID | None = None
-    mid: uuid.UUID | None = None
-    pid: uuid.UUID | None = None
-    campus_id: uuid.UUID | None = None
-    platform_ctx: PlatformContext | None = None
-
+    school_slug: str | None,
+    campus_slug: str | None,
+) -> _PortalLoginContext:
+    ctx = _PortalLoginContext()
     if portal == AuthPortal.platform:
         if not _is_superadmin(db, user.id):
             raise AuthError("Sin acceso al portal platform", "portal_forbidden")
         perms = _platform_permissions(db, user.id)
-        platform_ctx = PlatformContext(is_superadmin=True, permissions=perms)
+        ctx.platform_ctx = PlatformContext(is_superadmin=True, permissions=perms)
     elif portal == AuthPortal.staff:
         if not school_slug:
             raise AuthError("school_slug requerido para portal staff", "school_slug_required")
@@ -257,8 +292,8 @@ def login(
         )
         if not membership:
             raise AuthError("Sin membresía staff en este colegio", "portal_forbidden")
-        sid = membership.school_id
-        mid = membership.id
+        ctx.sid = membership.school_id
+        ctx.mid = membership.id
         if campus_slug:
             campus = db.scalar(
                 select(Campus).where(
@@ -270,7 +305,7 @@ def login(
             if not campus:
                 raise AuthError("Sede no encontrada", "campus_not_found")
             _assert_membership_campus_access(db, membership, campus.id)
-            campus_id = campus.id
+            ctx.campus_id = campus.id
             if portal.value in LOGIN_PORTALS:
                 branding = db.get(CampusPortalBranding, {"campus_id": campus.id, "portal": portal.value})
                 if branding is not None and not branding.login_enabled:
@@ -311,48 +346,137 @@ def login(
                 "Login deshabilitado para este portal en esta sede",
                 "login_disabled",
             )
-        sid = school.id
-        pid = parent.id
-        campus_id = campus.id
+        ctx.sid = school.id
+        ctx.pid = parent.id
+        ctx.campus_id = campus.id
     elif portal == AuthPortal.student:
-        raise AuthError(f"Portal {portal.value} no disponible aún (fase 11)", "portal_not_implemented")
+        if not school_slug or not campus_slug:
+            raise AuthError("school_slug y campus_slug requeridos para portal student", "school_slug_required")
+        school = db.scalar(select(School).where(School.slug == school_slug.lower()))
+        if not school:
+            raise AuthError("Colegio no encontrado", "school_not_found")
+        usage = get_plan_limits_usage_for_school(db, school.id)
+        if not usage.features.student_portal:
+            raise AuthError("Portal de estudiantes no incluido en el plan", "portal_forbidden")
+        student = db.scalar(
+            select(Student).where(
+                Student.user_id == user.id,
+                Student.school_id == school.id,
+                Student.status == "active",
+            )
+        )
+        if not student:
+            raise AuthError("Sin cuenta de estudiante en este colegio", "portal_forbidden")
+        campus = db.scalar(
+            select(Campus).where(
+                Campus.school_id == school.id,
+                Campus.slug == campus_slug.lower(),
+                Campus.is_active.is_(True),
+            )
+        )
+        if not campus:
+            raise AuthError("Sede no encontrada", "campus_not_found")
+        if student.campus_id and student.campus_id != campus.id:
+            raise AuthError("Estudiante no pertenece a esta sede", "campus_forbidden")
+        branding = db.get(CampusPortalBranding, {"campus_id": campus.id, "portal": portal.value})
+        if branding is not None and not branding.login_enabled:
+            raise AuthError(
+                "Login deshabilitado para este portal en esta sede",
+                "login_disabled",
+            )
+        ctx.sid = school.id
+        ctx.stid = student.id
+        ctx.campus_id = campus.id
     else:
         raise AuthError(f"Portal {portal.value} no soportado", "portal_not_implemented")
+    return ctx
 
+
+def _finalize_portal_login(
+    db: Session,
+    *,
+    user: User,
+    portal: AuthPortal,
+    ctx: _PortalLoginContext,
+    settings: Settings,
+    user_agent: str | None = None,
+    ip: str | None = None,
+) -> LoginResponse:
     user.last_login_at = _utcnow()
     access = create_access_token(
         user_id=user.id,
         portal=portal,
         settings=settings,
-        sid=sid,
-        mid=mid,
-        pid=pid,
-        campus_id=campus_id,
+        sid=ctx.sid,
+        mid=ctx.mid,
+        pid=ctx.pid,
+        stid=ctx.stid,
+        campus_id=ctx.campus_id,
     )
     refresh, _ = create_refresh_token_record(
         db,
         user_id=user.id,
         portal=portal,
         settings=settings,
-        sid=sid,
-        mid=mid,
-        pid=pid,
-        campus_id=campus_id,
+        sid=ctx.sid,
+        mid=ctx.mid,
+        pid=ctx.pid,
+        stid=ctx.stid,
+        campus_id=ctx.campus_id,
         user_agent=user_agent,
         ip=ip,
     )
     db.commit()
-
+    portals = list_user_portals_at_school(db, user_id=user.id, school_id=ctx.sid) if ctx.sid else []
     return LoginResponse(
         access_token=access,
         refresh_token=refresh,
         user=_user_info(user),
         portal=portal,
-        platform=platform_ctx,
-        sid=sid,
-        mid=mid,
-        pid=pid,
-        campus_id=campus_id,
+        platform=ctx.platform_ctx,
+        sid=ctx.sid,
+        mid=ctx.mid,
+        pid=ctx.pid,
+        stid=ctx.stid,
+        campus_id=ctx.campus_id,
+        portals=portals,
+    )
+
+
+def login(
+    db: Session,
+    *,
+    email: str,
+    password: str,
+    portal: AuthPortal,
+    school_slug: str | None = None,
+    campus_slug: str | None = None,
+    settings: Settings | None = None,
+    user_agent: str | None = None,
+    ip: str | None = None,
+) -> LoginResponse:
+    settings = settings or get_settings()
+    user = db.scalar(select(User).where(User.email == email.lower()))
+    if not user or not user.is_active:
+        raise AuthError("Credenciales inválidas", "invalid_credentials")
+    if not verify_password(password, user.password_hash):
+        raise AuthError("Credenciales inválidas", "invalid_credentials")
+
+    ctx = _resolve_portal_context(
+        db,
+        user=user,
+        portal=portal,
+        school_slug=school_slug,
+        campus_slug=campus_slug,
+    )
+    return _finalize_portal_login(
+        db,
+        user=user,
+        portal=portal,
+        ctx=ctx,
+        settings=settings,
+        user_agent=user_agent,
+        ip=ip,
     )
 
 
@@ -375,6 +499,7 @@ def refresh(
     sid = uuid.UUID(payload["sid"]) if payload.get("sid") else None
     mid = uuid.UUID(payload["mid"]) if payload.get("mid") else None
     pid = uuid.UUID(payload["pid"]) if payload.get("pid") else None
+    stid = uuid.UUID(payload["stid"]) if payload.get("stid") else None
     campus_id = uuid.UUID(payload["campus_id"]) if payload.get("campus_id") else None
 
     revoke_refresh_token(db, old_record.jti)
@@ -393,6 +518,7 @@ def refresh(
         sid=sid,
         mid=mid,
         pid=pid,
+        stid=stid,
         campus_id=campus_id,
     )
     new_refresh, _ = create_refresh_token_record(
@@ -403,11 +529,14 @@ def refresh(
         sid=sid,
         mid=mid,
         pid=pid,
+        stid=stid,
         campus_id=campus_id,
         user_agent=user_agent,
         ip=ip,
     )
     db.commit()
+
+    portals = list_user_portals_at_school(db, user_id=user.id, school_id=sid) if sid else []
 
     return LoginResponse(
         access_token=access,
@@ -418,7 +547,9 @@ def refresh(
         sid=sid,
         mid=mid,
         pid=pid,
+        stid=stid,
         campus_id=campus_id,
+        portals=portals,
     )
 
 
@@ -465,6 +596,27 @@ def _parent_me_context(
     )
 
 
+def _student_me_context(
+    db: Session, *, school_id: uuid.UUID, student_id: uuid.UUID, campus_id: uuid.UUID | None
+) -> StudentMeContext:
+    school = db.get(School, school_id)
+    student = db.get(Student, student_id)
+    if not school or not student or student.school_id != school_id:
+        raise AuthError("Contexto student inválido", "student_context_invalid")
+    campus_name = None
+    if campus_id:
+        campus = db.get(Campus, campus_id)
+        campus_name = campus.name if campus else None
+    return StudentMeContext(
+        student_id=student.id,
+        school_id=school.id,
+        school_slug=school.slug,
+        school_name=school.name,
+        campus_name=campus_name,
+        student_code=student.code,
+    )
+
+
 def build_me(db: Session, *, access_payload: dict[str, Any]) -> MeResponse:
     user_id = uuid.UUID(access_payload["sub"])
     user = db.get(User, user_id)
@@ -475,11 +627,13 @@ def build_me(db: Session, *, access_payload: dict[str, Any]) -> MeResponse:
     sid = uuid.UUID(access_payload["sid"]) if access_payload.get("sid") else None
     mid = uuid.UUID(access_payload["mid"]) if access_payload.get("mid") else None
     pid = uuid.UUID(access_payload["pid"]) if access_payload.get("pid") else None
+    stid = uuid.UUID(access_payload["stid"]) if access_payload.get("stid") else None
     campus_id = uuid.UUID(access_payload["campus_id"]) if access_payload.get("campus_id") else None
 
     platform_ctx: PlatformContext | None = None
     staff_ctx: StaffMeContext | None = None
     parent_ctx: ParentMeContext | None = None
+    student_ctx: StudentMeContext | None = None
     if portal == AuthPortal.platform:
         platform_ctx = PlatformContext(
             is_superadmin=_is_superadmin(db, user.id),
@@ -489,6 +643,10 @@ def build_me(db: Session, *, access_payload: dict[str, Any]) -> MeResponse:
         staff_ctx = _staff_me_context(db, school_id=sid, membership_id=mid)
     elif portal == AuthPortal.parent and sid and pid:
         parent_ctx = _parent_me_context(db, school_id=sid, parent_id=pid, campus_id=campus_id)
+    elif portal == AuthPortal.student and sid and stid:
+        student_ctx = _student_me_context(db, school_id=sid, student_id=stid, campus_id=campus_id)
+
+    portals = list_user_portals_at_school(db, user_id=user_id, school_id=sid) if sid else []
 
     return MeResponse(
         user=_user_info(user),
@@ -496,10 +654,13 @@ def build_me(db: Session, *, access_payload: dict[str, Any]) -> MeResponse:
         platform=platform_ctx,
         staff=staff_ctx,
         parent=parent_ctx,
+        student=student_ctx,
         sid=sid,
         mid=mid,
         pid=pid,
+        stid=stid,
         campus_id=campus_id,
+        portals=portals,
     )
 
 
@@ -550,9 +711,11 @@ def _issue_staff_tokens(
         settings=settings,
         sid=membership.school_id,
         mid=membership.id,
+        campus_id=campus_id,
         user_agent=user_agent,
         ip=ip,
     )
+    portals = list_user_portals_at_school(db, user_id=user.id, school_id=membership.school_id)
     return LoginResponse(
         access_token=access,
         refresh_token=refresh,
@@ -561,6 +724,7 @@ def _issue_staff_tokens(
         sid=membership.school_id,
         mid=membership.id,
         campus_id=campus_id,
+        portals=portals,
     )
 
 
@@ -618,3 +782,56 @@ def switch_campus(
         user_agent=user_agent,
         ip=ip,
     )
+
+
+def switch_portal(
+    db: Session,
+    *,
+    user_id: uuid.UUID,
+    portal: AuthPortal,
+    school_slug: str,
+    campus_slug: str,
+    settings: Settings | None = None,
+    user_agent: str | None = None,
+    ip: str | None = None,
+) -> LoginResponse:
+    settings = settings or get_settings()
+    user = db.get(User, user_id)
+    if not user or not user.is_active:
+        raise AuthError("Usuario inactivo", "user_inactive")
+    if portal == AuthPortal.platform:
+        raise AuthError("Portal platform no admite switch", "portal_forbidden")
+
+    ctx = _resolve_portal_context(
+        db,
+        user=user,
+        portal=portal,
+        school_slug=school_slug,
+        campus_slug=campus_slug,
+    )
+    return _finalize_portal_login(
+        db,
+        user=user,
+        portal=portal,
+        ctx=ctx,
+        settings=settings,
+        user_agent=user_agent,
+        ip=ip,
+    )
+
+
+def change_password(
+    db: Session,
+    *,
+    user_id: uuid.UUID,
+    current_password: str,
+    new_password: str,
+) -> None:
+    user = db.get(User, user_id)
+    if not user:
+        raise AuthError("Usuario no encontrado", "user_not_found")
+    if not verify_password(current_password, user.password_hash):
+        raise AuthError("Contraseña actual incorrecta", "invalid_credentials")
+    user.password_hash = hash_password(new_password)
+    user.must_change_password = False
+    db.commit()
