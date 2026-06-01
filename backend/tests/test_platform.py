@@ -138,3 +138,63 @@ def test_superadmin_patches_school(client, db_session, superadmin_credentials):
     updated = patch.json()
     assert updated["status"] == "trial"
     assert updated["notes"] == "En prueba"
+
+
+def test_superadmin_deletes_school_with_slug_confirm(client, db_session, superadmin_credentials):
+    _ensure_superadmin(db_session, superadmin_credentials)
+    login = platform_login(client, superadmin_credentials)
+    headers = platform_headers(login["access_token"])
+
+    create = client.post(
+        "/api/v1/platform/schools",
+        headers=headers,
+        json={
+            "name": "Colegio Delete",
+            "slug": "colegio-delete-test",
+            "owner": {
+                "email": "owner-delete@test.dev",
+                "password": "Owner123!",
+                "full_name": "Dueño Delete",
+            },
+        },
+    )
+    assert create.status_code == 201
+    school_id = create.json()["id"]
+
+    wrong = client.request(
+        "DELETE",
+        f"/api/v1/platform/schools/{school_id}",
+        headers=headers,
+        json={"slug": "slug-incorrecto"},
+    )
+    assert wrong.status_code == 400
+
+    deleted = client.post(
+        f"/api/v1/platform/schools/{school_id}/delete",
+        headers=headers,
+        json={"slug": "colegio-delete-test"},
+    )
+    assert deleted.status_code == 204
+
+    missing = client.get(f"/api/v1/platform/schools/{school_id}", headers=headers)
+    assert missing.status_code == 404
+
+
+def test_superadmin_cannot_delete_protected_demo_school(client, db_session, superadmin_credentials):
+    _ensure_superadmin(db_session, superadmin_credentials)
+    login = platform_login(client, superadmin_credentials)
+    headers = platform_headers(login["access_token"])
+
+    listing = client.get("/api/v1/platform/schools", headers=headers, params={"q": "colegio-demo"})
+    assert listing.status_code == 200
+    items = listing.json()["items"]
+    demo = next((s for s in items if s["slug"] == "colegio-demo"), None)
+    assert demo is not None
+
+    response = client.request(
+        "DELETE",
+        f"/api/v1/platform/schools/{demo['id']}",
+        headers=headers,
+        json={"slug": "colegio-demo"},
+    )
+    assert response.status_code == 403

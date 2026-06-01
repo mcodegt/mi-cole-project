@@ -1,0 +1,384 @@
+<mc-page-header title="Colegios" subtitle="Administración de colegios en la plataforma">
+  <p-button label="Nuevo colegio" icon="pi pi-plus" (onClick)="openCreateModal()" />
+</mc-page-header>
+
+<p-toast />
+
+<div class="mc-form-filter-bar mb-4">
+  <mc-form-field label="Buscar" icon="pi pi-search" [compact]="true" class="min-w-[12rem] flex-1">
+    <input
+      class="mc-input"
+      placeholder="Nombre o slug…"
+      [(ngModel)]="searchInput"
+      (keyup.enter)="applyFilters()"
+    />
+  </mc-form-field>
+  <mc-form-field label="Estado" icon="pi pi-filter" [compact]="true" class="w-44">
+    <p-select
+      [options]="statusFilterOptions"
+      [(ngModel)]="statusInput"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Todos"
+      [showClear]="true"
+      styleClass="w-full"
+    />
+  </mc-form-field>
+  <p-button label="Buscar" icon="pi pi-search" (onClick)="applyFilters()" />
+</div>
+
+<div class="mc-card mc-table-card">
+  <p-table
+    [value]="schools()"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="total()"
+    [loading]="loading()"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    (onLazyLoad)="loadPage($event)"
+    styleClass="p-datatable-sm"
+    [tableStyle]="{ 'min-width': '48rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Nombre</th>
+        <th>Slug</th>
+        <th>Estado</th>
+        <th>Facturación</th>
+        <th class="w-32">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-s>
+      <tr>
+        <td class="font-medium mc-text">{{ s.name }}</td>
+        <td class="mc-text-subtle">{{ s.slug }}</td>
+        <td>
+          <p-tag [value]="statusLabel(s.status)" [severity]="statusSeverity(s.status)" />
+        </td>
+        <td>{{ billingLabel(s.billing_access_mode) }}</td>
+        <td>
+          <p-button
+            label="Configurar"
+            icon="pi pi-cog"
+            size="small"
+            [outlined]="true"
+            (onClick)="openConfig(s)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5" class="py-8 text-center mc-text-muted">Sin colegios</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="Nuevo colegio"
+  [visible]="createVisible()"
+  (visibleChange)="onCreateVisibleChange($event)"
+  [modal]="true"
+  styleClass="mc-dialog-form"
+  [style]="{ width: '40rem', maxWidth: '95vw' }"
+  [draggable]="false"
+>
+  <p class="mb-5 text-sm leading-relaxed mc-text-muted">
+    Provisiona el tenant, la sede principal y el acceso staff del dueño.
+  </p>
+
+  <div class="space-y-5">
+    <div class="mc-form-section">
+      <p class="mc-form-section__title">
+        <i class="pi pi-id-card"></i>
+        Datos del colegio
+      </p>
+      <div class="mc-form-grid mc-form-grid--2">
+        <mc-form-field label="Nombre" icon="pi pi-bookmark" forId="create-name">
+          <input
+            id="create-name"
+            class="mc-input"
+            [(ngModel)]="createName"
+            (ngModelChange)="onCreateNameChange($event)"
+            placeholder="Colegio Ejemplo"
+            autocomplete="off"
+          />
+        </mc-form-field>
+        <mc-form-field
+          label="Slug"
+          icon="pi pi-link"
+          forId="create-slug"
+          hint="Identificador único para login staff"
+          [error]="createSlugError()"
+        >
+          <input
+            id="create-slug"
+            class="mc-input"
+            [(ngModel)]="createSlug"
+            (ngModelChange)="onCreateSlugChange()"
+            placeholder="colegio-ejemplo"
+            autocomplete="off"
+          />
+        </mc-form-field>
+        <mc-form-field label="Plan" icon="pi pi-star" hint="Opcional al crear" class="sm:col-span-2">
+          <p-select
+            inputId="create-plan"
+            [options]="planOptions()"
+            [(ngModel)]="createPlanId"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Sin plan"
+            [showClear]="true"
+            styleClass="w-full"
+          />
+        </mc-form-field>
+      </div>
+    </div>
+
+    <div class="mc-form-section">
+      <p class="mc-form-section__title">
+        <i class="pi pi-user"></i>
+        Dueño / administrador
+      </p>
+      <div class="mc-form-grid mc-form-grid--2">
+        <mc-form-field label="Correo" icon="pi pi-envelope" forId="create-owner-email">
+          <input
+            id="create-owner-email"
+            class="mc-input"
+            type="email"
+            [(ngModel)]="createOwnerEmail"
+            placeholder="dueño@colegio.edu"
+            autocomplete="off"
+          />
+        </mc-form-field>
+        <mc-form-field label="Nombre completo" icon="pi pi-user" forId="create-owner-name">
+          <input
+            id="create-owner-name"
+            class="mc-input"
+            [(ngModel)]="createOwnerName"
+            placeholder="María López"
+            autocomplete="off"
+          />
+        </mc-form-field>
+        <mc-form-field
+          label="Contraseña"
+          icon="pi pi-lock"
+          forId="create-owner-password"
+          hint="Mínimo 8 caracteres"
+          class="sm:col-span-2"
+        >
+          <input
+            id="create-owner-password"
+            class="mc-input"
+            type="password"
+            [(ngModel)]="createOwnerPassword"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+        </mc-form-field>
+      </div>
+    </div>
+
+    <div class="mc-form-callout">
+      <i class="mc-form-callout__icon pi pi-info-circle"></i>
+      <p>
+        Se crea automáticamente la sede <strong>sede-principal</strong> y el dueño podrá ingresar al
+        portal staff con el slug del colegio y campus <strong>sede-principal</strong>.
+      </p>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="createLoading()"
+      (onClick)="onCreateVisibleChange(false)"
+    />
+    <p-button
+      label="Crear colegio"
+      icon="pi pi-plus"
+      [loading]="createLoading()"
+      (onClick)="createSchool()"
+    />
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [header]="configDialogTitle()"
+  [visible]="configVisible()"
+  (visibleChange)="onConfigVisibleChange($event)"
+  [modal]="true"
+  styleClass="mc-dialog-form"
+  [style]="{ width: '38rem', maxWidth: '95vw' }"
+  [draggable]="false"
+>
+  @if (configLoading()) {
+    <div class="flex flex-col items-center gap-3 py-10">
+      <i class="pi pi-spin pi-spinner text-2xl mc-text-accent"></i>
+      <p class="text-sm mc-text-muted">Cargando configuración…</p>
+    </div>
+  } @else if (configForm()) {
+    <div class="space-y-5">
+      <div class="mc-form-section">
+        <p class="mc-form-section__title">
+          <i class="pi pi-id-card"></i>
+          Identidad
+        </p>
+        <div class="mc-form-grid mc-form-grid--2">
+          <mc-form-field label="Slug" icon="pi pi-link" hint="No editable después de crear">
+            <input class="mc-input mc-input--readonly" [ngModel]="configForm()!.slug" readonly />
+          </mc-form-field>
+          <mc-form-field label="Nombre" icon="pi pi-bookmark">
+            <input class="mc-input" [(ngModel)]="configForm()!.name" />
+          </mc-form-field>
+        </div>
+      </div>
+
+      <div class="mc-form-section">
+        <p class="mc-form-section__title">
+          <i class="pi pi-credit-card"></i>
+          Suscripción y acceso
+        </p>
+        <div class="mc-form-grid mc-form-grid--2">
+          <mc-form-field label="Plan" icon="pi pi-star">
+            <p-select
+              [options]="planOptions()"
+              [(ngModel)]="configForm()!.subscription_plan_id"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Sin plan"
+              [showClear]="true"
+              styleClass="w-full"
+            />
+          </mc-form-field>
+          <mc-form-field label="Estado" icon="pi pi-circle">
+            <p-select
+              [options]="statusEditOptions"
+              [(ngModel)]="configForm()!.status"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            />
+          </mc-form-field>
+          <mc-form-field label="Acceso facturación" icon="pi pi-wallet">
+            <p-select
+              [options]="billingOptions"
+              [(ngModel)]="configForm()!.billing_access_mode"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+            />
+          </mc-form-field>
+          <mc-form-field label="Moneda" icon="pi pi-dollar" hint="Código ISO de 3 letras">
+            <input class="mc-input uppercase" maxlength="3" [(ngModel)]="configForm()!.currency" />
+          </mc-form-field>
+        </div>
+      </div>
+
+      @if (configForm()!.payment_reference_code) {
+        <mc-form-field label="Código referencia pago" icon="pi pi-hashtag" hint="Generado por el sistema">
+          <input
+            class="mc-input mc-input--readonly"
+            [ngModel]="configForm()!.payment_reference_code"
+            readonly
+          />
+        </mc-form-field>
+      }
+
+      <mc-form-field label="Notas internas" icon="pi pi-file-edit">
+        <textarea
+          class="mc-input min-h-24 resize-y"
+          rows="3"
+          [(ngModel)]="configForm()!.notes"
+          placeholder="Observaciones para el equipo de plataforma…"
+        ></textarea>
+      </mc-form-field>
+
+      @if (isProtectedSchool(configForm()!.slug)) {
+        <div class="mc-form-callout">
+          <i class="mc-form-callout__icon pi pi-shield"></i>
+          <p>
+            El colegio demo <strong>{{ configForm()!.slug }}</strong> está protegido y no puede
+            eliminarse desde la plataforma.
+          </p>
+        </div>
+      } @else {
+        <div class="mc-form-danger-zone">
+          <p class="mc-form-danger-zone__title">
+            <i class="pi pi-exclamation-triangle"></i>
+            Zona de peligro
+          </p>
+          <p class="mc-form-danger-zone__text">
+            Eliminar este colegio borra el tenant y sus datos asociados del sistema: sedes,
+            estudiantes, padres, roles, facturación y configuración. Los usuarios globales no se
+            eliminan.
+          </p>
+          @if (deleteStepActive()) {
+            <div class="mt-4 space-y-3 border-t pt-4" style="border-color: color-mix(in srgb, #ef4444 25%, var(--mc-border) 75%)">
+              <p class="text-sm mc-text-muted">
+                Esta acción es irreversible. Escriba el slug exacto para confirmar:
+              </p>
+              <p class="mc-form-danger-zone__slug">{{ configForm()!.slug }}</p>
+              <mc-form-field label="Confirmar slug" icon="pi pi-link">
+                <input
+                  class="mc-input"
+                  [(ngModel)]="deleteSlugInput"
+                  placeholder="Escriba el slug…"
+                  autocomplete="off"
+                />
+              </mc-form-field>
+              <div class="flex flex-wrap justify-end gap-2">
+                <p-button
+                  label="Cancelar"
+                  severity="secondary"
+                  [outlined]="true"
+                  [disabled]="deleteLoading()"
+                  (onClick)="cancelDeleteStep()"
+                />
+                <p-button
+                  label="Eliminar permanentemente"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [loading]="deleteLoading()"
+                  [disabled]="!deleteSlugMatches()"
+                  (onClick)="confirmDeleteSchool()"
+                />
+              </div>
+            </div>
+          } @else {
+            <div class="mt-4">
+              <p-button
+                label="Eliminar colegio"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="startDeleteStep()"
+              />
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <ng-template #footer>
+      @if (!deleteStepActive()) {
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="onConfigVisibleChange(false)"
+        />
+        <p-button
+          label="Guardar cambios"
+          icon="pi pi-check"
+          [loading]="configSaving()"
+          (onClick)="saveConfig()"
+        />
+      }
+    </ng-template>
+  }
+</p-dialog>

@@ -4,14 +4,16 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.authz import AuthzContext, require_platform_permission
 from app.database import get_db
 from app.schemas.campus import PaginatedResponse
-from app.schemas.platform import SchoolCreate, SchoolRead, SchoolUpdate
+from app.schemas.platform import SchoolCreate, SchoolDeleteConfirm, SchoolRead, SchoolUpdate
 from app.services.platform_service import (
     create_school as create_school_svc,
+    delete_school as delete_school_svc,
     get_school as get_school_svc,
     list_schools as list_schools_svc,
     update_school as update_school_svc,
@@ -59,3 +61,26 @@ def update_school(
     ctx: AuthzContext = Depends(require_platform_permission("platform.schools.manage")),
 ) -> SchoolRead:
     return update_school_svc(db, school_id, body)
+
+
+@router.delete("/{school_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def delete_school(
+    school_id: UUID,
+    body: SchoolDeleteConfirm,
+    db: Session = Depends(get_db),
+    ctx: AuthzContext = Depends(require_platform_permission("platform.schools.manage")),
+) -> Response:
+    delete_school_svc(db, school_id, body.slug)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{school_id}/delete", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+def delete_school_confirm(
+    school_id: UUID,
+    body: SchoolDeleteConfirm,
+    db: Session = Depends(get_db),
+    ctx: AuthzContext = Depends(require_platform_permission("platform.schools.manage")),
+) -> Response:
+    """Eliminar colegio con confirmación de slug (preferido sobre DELETE en proxies)."""
+    delete_school_svc(db, school_id, body.slug)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -48,6 +48,10 @@ class SchoolUpdate(BaseModel):
     notes: Optional[str] = None
 
 
+class SchoolDeleteConfirm(BaseModel):
+    slug: str = Field(min_length=1, max_length=100, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
 class SchoolRead(BaseModel):
     id: UUID
     name: str

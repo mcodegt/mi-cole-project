@@ -52,8 +52,285 @@
   }
 
   .mc-input {
-    @apply w-full rounded-lg px-3 py-2 text-sm outline-none ring-primary focus:ring-2;
+    @apply w-full rounded-lg px-3 py-2.5 text-sm outline-none transition-shadow;
     border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    color: var(--mc-text);
+    box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .mc-input:focus {
+    border-color: var(--mc-primary);
+    box-shadow:
+      inset 0 1px 2px rgb(15 23 42 / 0.04),
+      0 0 0 3px color-mix(in srgb, var(--mc-primary) 22%, transparent);
+  }
+
+  .mc-input::placeholder {
+    color: var(--mc-text-subtle);
+  }
+
+  .mc-input--readonly,
+  .mc-input:read-only {
+    background: var(--mc-surface-muted);
+    color: var(--mc-text-muted);
+    cursor: default;
+    box-shadow: none;
+  }
+
+  .mc-input--readonly:focus,
+  .mc-input:read-only:focus {
+    @apply ring-0;
+    border-color: var(--mc-border);
+  }
+
+  /* Form layout system */
+  .mc-form-panel {
+    @apply overflow-hidden rounded-xl;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .mc-form-panel__header {
+    @apply flex items-start gap-3 border-b px-5 py-4;
+    border-color: var(--mc-border);
+    background: linear-gradient(
+      180deg,
+      var(--mc-surface) 0%,
+      color-mix(in srgb, var(--mc-surface-muted) 35%, var(--mc-surface) 65%) 100%
+    );
+  }
+
+  .mc-form-panel__icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base;
+    background: color-mix(in srgb, var(--mc-primary) 12%, var(--mc-surface) 88%);
+    color: var(--mc-primary-text);
+    border: 1px solid color-mix(in srgb, var(--mc-primary) 18%, var(--mc-border) 82%);
+  }
+
+  .mc-form-panel__title {
+    @apply text-base font-semibold tracking-tight;
+    color: var(--mc-text);
+  }
+
+  .mc-form-panel__desc {
+    @apply mt-0.5 text-sm leading-relaxed;
+    color: var(--mc-text-muted);
+  }
+
+  .mc-form-panel__body {
+    @apply space-y-5 p-5;
+  }
+
+  .mc-form-panel__footer {
+    @apply flex flex-wrap items-center justify-end gap-2 border-t px-5 py-4;
+    border-color: var(--mc-border);
+    background: var(--mc-surface-muted);
+  }
+
+  .mc-form-section {
+    @apply rounded-xl p-4;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface-muted);
+  }
+
+  .mc-form-section__title {
+    @apply mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider;
+    color: var(--mc-text-muted);
+  }
+
+  .mc-form-section__title i {
+    color: var(--mc-primary-text);
+    font-size: 0.875rem;
+  }
+
+  .mc-form-grid {
+    @apply grid gap-4;
+  }
+
+  .mc-form-grid--2 {
+    @apply sm:grid-cols-2;
+  }
+
+  .mc-form-grid--3 {
+    @apply sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .mc-form-field {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .mc-form-field--compact {
+    @apply gap-1;
+  }
+
+  .mc-form-field__label {
+    @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-wide;
+    color: var(--mc-text-muted);
+  }
+
+  .mc-form-field__icon-wrap {
+    @apply inline-flex h-5 w-5 items-center justify-center rounded-md text-[0.65rem];
+    background: color-mix(in srgb, var(--mc-primary) 10%, var(--mc-surface) 90%);
+    color: var(--mc-primary-text);
+  }
+
+  .mc-form-field__hint {
+    @apply text-xs leading-relaxed;
+    color: var(--mc-text-subtle);
+  }
+
+  .mc-form-field__error {
+    @apply text-xs font-medium text-red-600 dark:text-red-400;
+  }
+
+  .mc-form-callout {
+    @apply flex gap-3 rounded-xl px-4 py-3 text-sm leading-relaxed;
+    border: 1px solid color-mix(in srgb, var(--mc-primary) 20%, var(--mc-border) 80%);
+    background: color-mix(in srgb, var(--mc-primary) 6%, var(--mc-surface) 94%);
+    color: var(--mc-text-muted);
+  }
+
+  .mc-form-callout__icon {
+    @apply mt-0.5 shrink-0 text-base;
+    color: var(--mc-primary-text);
+  }
+
+  .mc-form-callout strong {
+    color: var(--mc-text);
+    font-weight: 600;
+  }
+
+  .mc-form-filter-bar {
+    @apply flex flex-wrap items-end gap-4 rounded-xl p-4;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .mc-form-actions {
+    @apply flex flex-wrap items-center justify-end gap-2 border-t pt-4;
+    border-color: var(--mc-border);
+  }
+
+  /* PrimeNG controls inside form fields */
+  .mc-form-field .p-inputtext,
+  .mc-form-field .p-textarea {
+    @apply w-full rounded-lg px-3 py-2.5 text-sm outline-none transition-shadow;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    color: var(--mc-text);
+    box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .mc-form-field .p-inputtext:focus,
+  .mc-form-field .p-textarea:focus {
+    border-color: var(--mc-primary);
+    box-shadow:
+      inset 0 1px 2px rgb(15 23 42 / 0.04),
+      0 0 0 3px color-mix(in srgb, var(--mc-primary) 22%, transparent);
+  }
+
+  .mc-form-field .p-inputtext:read-only {
+    background: var(--mc-surface-muted);
+    color: var(--mc-text-muted);
+    box-shadow: none;
+  }
+
+  .mc-form-field .p-select {
+    @apply w-full rounded-lg transition-shadow;
+    border: 1px solid var(--mc-border);
+    background: var(--mc-surface);
+    box-shadow: inset 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+
+  .mc-form-field .p-select:not(.p-disabled):hover {
+    border-color: color-mix(in srgb, var(--mc-primary) 35%, var(--mc-border) 65%);
+  }
+
+  .mc-form-field .p-select.p-focus {
+    border-color: var(--mc-primary);
+    box-shadow:
+      inset 0 1px 2px rgb(15 23 42 / 0.04),
+      0 0 0 3px color-mix(in srgb, var(--mc-primary) 22%, transparent);
+  }
+
+  .mc-form-field .p-select .p-select-label {
+    @apply px-3 py-2.5 text-sm;
+    color: var(--mc-text);
+  }
+
+  .mc-form-field .p-select .p-select-label.p-placeholder {
+    color: var(--mc-text-subtle);
+  }
+
+  .mc-dialog-form.p-dialog {
+    border: 1px solid var(--mc-border);
+    box-shadow:
+      0 24px 48px rgb(15 23 42 / 0.12),
+      0 8px 16px rgb(15 23 42 / 0.06);
+  }
+
+  .mc-dialog-form .p-dialog-header {
+    @apply border-b px-5 py-4;
+    border-color: var(--mc-border);
+    background: linear-gradient(
+      180deg,
+      var(--mc-surface) 0%,
+      color-mix(in srgb, var(--mc-surface-muted) 40%, var(--mc-surface) 60%) 100%
+    );
+  }
+
+  .mc-dialog-form .p-dialog-title {
+    @apply text-lg font-semibold tracking-tight;
+    color: var(--mc-text);
+  }
+
+  .mc-dialog-form .p-dialog-content {
+    @apply px-5 py-5;
+    background: var(--mc-surface);
+  }
+
+  .mc-dialog-form .p-dialog-footer {
+    @apply border-t px-5 py-4;
+    border-color: var(--mc-border);
+    background: var(--mc-surface-muted);
+  }
+
+  mc-form-field,
+  mc-form-panel {
+    display: block;
+  }
+
+  .mc-form-danger-zone {
+    @apply rounded-xl p-4;
+    border: 1px solid color-mix(in srgb, #ef4444 35%, var(--mc-border) 65%);
+    background: color-mix(in srgb, #ef4444 6%, var(--mc-surface) 94%);
+  }
+
+  .dark .mc-form-danger-zone {
+    border-color: color-mix(in srgb, #f87171 40%, var(--mc-border) 60%);
+    background: color-mix(in srgb, #ef4444 12%, var(--mc-surface) 88%);
+  }
+
+  .mc-form-danger-zone__title {
+    @apply flex items-center gap-2 text-sm font-semibold;
+    color: #b91c1c;
+  }
+
+  .dark .mc-form-danger-zone__title {
+    color: #fca5a5;
+  }
+
+  .mc-form-danger-zone__text {
+    @apply mt-2 text-sm leading-relaxed;
+    color: var(--mc-text-muted);
+  }
+
+  .mc-form-danger-zone__slug {
+    @apply mt-3 rounded-lg px-3 py-2 font-mono text-sm;
+    border: 1px dashed color-mix(in srgb, #ef4444 40%, var(--mc-border) 60%);
     background: var(--mc-surface);
     color: var(--mc-text);
   }

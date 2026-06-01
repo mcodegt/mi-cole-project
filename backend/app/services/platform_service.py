@@ -36,6 +36,8 @@ SCHOOL_OWNER_PERMISSION_PREFIXES = (
     "school.subscription.",
 )
 
+PROTECTED_SCHOOL_SLUGS = frozenset({"colegio-demo"})
+
 
 def _school_to_read(school: School, settings: Optional[SchoolSettings]) -> SchoolRead:
     notes = None
@@ -246,6 +248,27 @@ def get_school(db: Session, school_id: uuid.UUID) -> SchoolRead:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Colegio no encontrado")
     settings = db.get(SchoolSettings, school_id)
     return _school_to_read(school, settings)
+
+
+def delete_school(db: Session, school_id: uuid.UUID, slug_confirm: str) -> None:
+    school = db.get(School, school_id)
+    if not school:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Colegio no encontrado")
+
+    if school.slug in PROTECTED_SCHOOL_SLUGS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Este colegio demo está protegido y no puede eliminarse",
+        )
+
+    if slug_confirm.strip().lower() != school.slug.lower():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El slug no coincide. Escriba el slug exacto para confirmar.",
+        )
+
+    db.delete(school)
+    db.commit()
 
 
 def create_platform_user(db: Session, body: PlatformUserCreate) -> User:
