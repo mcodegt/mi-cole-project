@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { billingAllowedGuard } from '../../core/auth/billing-restricted.guard';
+import { schoolOwnerGuard } from '../../core/auth/school-owner.guard';
 
 export const STAFF_ROUTES: Routes = [
   {
@@ -32,15 +33,34 @@ export const STAFF_ROUTES: Routes = [
       import('./parents-list/parents-list.component').then((m) => m.ParentsListComponent),
   },
   {
+    path: 'settings',
+    canActivate: [schoolOwnerGuard],
+    data: { title: 'Configuración' },
+    loadComponent: () =>
+      import('./staff-settings-page/staff-settings-page.component').then(
+        (m) => m.StaffSettingsPageComponent,
+      ),
+  },
+  {
     path: 'team',
-    canActivate: [billingAllowedGuard],
+    canActivate: [schoolOwnerGuard, billingAllowedGuard],
     data: { title: 'Equipo' },
     loadComponent: () => import('./team-list/team-list.component').then((m) => m.TeamListComponent),
   },
   {
     path: 'subscription',
+    canActivate: [schoolOwnerGuard],
     data: { title: 'Suscripción' },
     loadComponent: () =>
       import('./subscription-page/subscription-page.component').then((m) => m.SubscriptionPageComponent),
+  },
+  {
+    path: 'school-profile',
+    canActivate: [schoolOwnerGuard, billingAllowedGuard],
+    data: { title: 'Perfil del colegio' },
+    loadComponent: () =>
+      import('./school-profile-page/school-profile-page.component').then(
+        (m) => m.SchoolProfilePageComponent,
+      ),
   },
 ];

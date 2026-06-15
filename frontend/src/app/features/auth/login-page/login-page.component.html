@@ -1,52 +1,157 @@
-<div
-  class="flex min-h-screen items-center justify-center p-4"
-  style="background: var(--mc-app-shell-bg)"
-  [style.--mc-primary]="accentColor()"
->
-  <div class="mc-card w-full max-w-md">
-    @if (branding(); as ctx) {
-      @if (ctx.branding.logo_url) {
-        <img class="mb-4 max-h-16" [src]="ctx.branding.logo_url" alt="" />
-      }
-      <h1 class="text-xl font-bold mc-text">{{ ctx.branding.login_title }}</h1>
-      @if (ctx.branding.login_subtitle) {
-        <p class="mt-1 text-sm mc-text-muted">{{ ctx.branding.login_subtitle }}</p>
-      }
-    } @else if (portal === 'platform') {
-      <h1 class="text-xl font-bold mc-text">Mi Cole — Plataforma</h1>
-      <p class="mt-1 text-sm mc-text-muted">Acceso superadmin MCodeGT</p>
-    } @else {
-      <h1 class="text-xl font-bold mc-text">Iniciar sesión</h1>
-    }
+<div class="ced-auth ced-auth--login">
+  <aside class="ced-auth__hero">
+    <a class="ced-auth__home" routerLink="/">← Inicio</a>
 
-    <form class="mt-6 flex flex-col gap-4" [formGroup]="form" (ngSubmit)="submit()">
-      <label class="flex flex-col gap-1 text-sm font-medium mc-text-muted">
-        Correo
-        <input type="email" class="mc-input" formControlName="email" autocomplete="username" />
-      </label>
-      <label class="flex flex-col gap-1 text-sm font-medium mc-text-muted">
-        Contraseña
-        <input
-          type="password"
-          class="mc-input"
-          formControlName="password"
-          autocomplete="current-password"
-        />
-      </label>
-      @if (error()) {
-        <p class="text-sm text-red-600 dark:text-red-400">{{ error() }}</p>
+    <div class="ced-auth__hero-body">
+      @if (branding(); as ctx) {
+        <div class="ced-auth__hero-school-block">
+          @if (ctx.branding.logo_url) {
+            <div class="ced-auth__hero-brand ced-auth__hero-brand--school">
+              <img class="ced-auth__school-logo" [src]="ctx.branding.logo_url" [alt]="ctx.school.name" />
+            </div>
+          } @else {
+            <div class="ced-auth__school-mark" [style.background]="loginAccentColor()">
+              {{ schoolInitials(ctx.school.name) }}
+            </div>
+          }
+          <div class="ced-auth__hero-school-meta">
+            <p class="ced-auth__hero-school">{{ ctx.school.name }}</p>
+            @if (portalCopy(); as copy) {
+              <span class="ced-login-portal-badge ced-login-portal-badge--hero">{{ copy.badge }}</span>
+            }
+          </div>
+        </div>
+        @if (portalCopy(); as copy) {
+          <div class="ced-auth__hero-divider" aria-hidden="true"></div>
+          <h1 class="ced-auth__hero-title">{{ copy.welcome }}</h1>
+          <p class="ced-auth__hero-lead">{{ copy.lead }}</p>
+          <ul class="ced-auth__features" aria-label="Funciones del portal">
+            @for (feature of copy.heroFeatures; track feature.label) {
+              <li class="ced-auth__feature">
+                <i [class]="feature.icon" aria-hidden="true"></i>
+                <span>{{ feature.label }}</span>
+              </li>
+            }
+          </ul>
+        }
+      } @else if (portal === 'platform') {
+        <div class="ced-auth__hero-wordmark">
+          <img class="ced-auth__hero-icon" [src]="ced.assets.icon" alt="" aria-hidden="true" />
+          <div class="ced-auth__hero-wordmark-text">
+            <p class="ced-auth__hero-name">{{ ced.shortName }}</p>
+            <p class="ced-auth__hero-subname">{{ ced.fullName }}</p>
+          </div>
+        </div>
+        <h1 class="ced-auth__hero-title">Plataforma <span>CED</span> para centros educativos</h1>
+        <p class="ced-auth__hero-lead">
+          Gestión multi-colegio, sedes conectadas y operación educativa centralizada desde MCodeGT.
+        </p>
+      } @else if (brandingLoading()) {
+        <div class="ced-auth__hero-loading" aria-live="polite">
+          <i class="pi pi-spin pi-spinner"></i> Cargando colegio…
+        </div>
+      } @else {
+        <div class="ced-auth__hero-wordmark">
+          <img class="ced-auth__hero-icon" [src]="ced.assets.icon" alt="" aria-hidden="true" />
+          <div class="ced-auth__hero-wordmark-text">
+            <p class="ced-auth__hero-name">{{ ced.shortName }}</p>
+            <p class="ced-auth__hero-subname">{{ ced.fullName }}</p>
+          </div>
+        </div>
+        <h1 class="ced-auth__hero-title">Bienvenido a <span>{{ ced.shortName }}</span></h1>
+        <p class="ced-auth__hero-lead">{{ ced.tagline }}</p>
       }
-      <button type="submit" class="mc-btn-primary w-full" [disabled]="loading() || form.invalid">
-        {{ loading() ? 'Entrando…' : 'Entrar' }}
-      </button>
-    </form>
+    </div>
 
-    <p class="mt-5 text-center text-xs mc-text-subtle">
-      <a class="mc-text-accent hover:underline" routerLink="/login/platform">Plataforma</a>
-      ·
-      <a class="mc-text-accent hover:underline" routerLink="/login/staff/colegio-demo/sede-norte"
-        >Staff demo</a
-      >
-    </p>
-  </div>
+    <p class="ced-auth__hero-foot">{{ ced.fullName }} by MCodeGT</p>
+  </aside>
+
+  <main class="ced-auth__main" [style.--ced-login-accent]="loginAccentColor()">
+    <div class="ced-auth__panel ced-login-panel">
+      @if (portal !== 'platform' && !branding() && !brandingLoading()) {
+        <a class="ced-auth__home ced-auth__home--panel" [routerLink]="authRoutes.entry">← Buscar colegio</a>
+      }
+
+      @if (branding(); as ctx) {
+        <div class="ced-login-panel__head">
+          @if (ctx.branding.logo_url) {
+            <img class="ced-login-panel__logo" [src]="ctx.branding.logo_url" [alt]="ctx.school.name" />
+          } @else {
+            <div class="ced-auth__school-mark ced-auth__school-mark--panel" [style.background]="loginAccentColor()">
+              {{ schoolInitials(ctx.school.name) }}
+            </div>
+          }
+          <div class="ced-login-panel__titles">
+            <p class="ced-login-panel__school">{{ ctx.school.name }}</p>
+            @if (portalCopy(); as copy) {
+              <span class="ced-login-portal-badge">{{ copy.badge }}</span>
+              <h2 class="ced-login-panel__welcome">{{ copy.welcome }}</h2>
+              <p class="ced-login-panel__campus">
+                <i class="pi pi-map-marker"></i> {{ ctx.campus.name }}
+              </p>
+            }
+          </div>
+        </div>
+      } @else if (portal === 'platform') {
+        <img class="ced-auth__panel-logo" [src]="ced.assets.logo" alt="CED" />
+        <h2 class="ced-auth__panel-title">{{ ced.shortName }} — Plataforma</h2>
+        <p class="ced-auth__panel-lead">Acceso dueño de plataforma · MCodeGT</p>
+      } @else if (brandingLoading()) {
+        <p class="ced-auth__panel-lead"><i class="pi pi-spin pi-spinner"></i> Cargando…</p>
+      } @else {
+        <img class="ced-auth__panel-logo" [src]="ced.assets.logo" alt="CED" />
+        <h2 class="ced-auth__panel-title">Iniciar sesión</h2>
+        <p class="ced-auth__panel-lead">{{ ced.fullName }}</p>
+      }
+
+      <form class="ced-login-form" [formGroup]="form" (ngSubmit)="submit()">
+        <label class="ced-login-form__field">
+          <span>{{ portalCopy()?.emailLabel ?? 'Correo' }}</span>
+          <input
+            type="email"
+            class="mc-input ced-login-form__input"
+            formControlName="email"
+            [placeholder]="portalCopy()?.emailPlaceholder ?? 'correo@ejemplo.com'"
+            autocomplete="username"
+          />
+        </label>
+        <label class="ced-login-form__field">
+          <span>Contraseña</span>
+          <input
+            type="password"
+            class="mc-input ced-login-form__input"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+        </label>
+        @if (error()) {
+          <p class="ced-login-form__error"><i class="pi pi-exclamation-circle"></i> {{ error() }}</p>
+        }
+        <button
+          type="submit"
+          class="ced-login-form__submit"
+          [disabled]="loading() || form.invalid || brandingLoading()"
+        >
+          @if (loading()) {
+            <i class="pi pi-spin pi-spinner"></i> Entrando…
+          } @else {
+            {{ portalCopy()?.submit ?? 'Entrar' }}
+          }
+        </button>
+      </form>
+
+      @if (portal === 'platform') {
+        <a class="ced-auth__platform-link" [routerLink]="authRoutes.entry">
+          <i class="pi pi-search"></i> Ingresar a mi colegio
+        </a>
+      } @else {
+        <p class="ced-login-form__footer">
+          <a [routerLink]="authRoutes.entry">Buscar otro colegio</a>
+          ·
+          <a routerLink="/">Inicio CED</a>
+        </p>
+      }
+    </div>
+  </main>
 </div>

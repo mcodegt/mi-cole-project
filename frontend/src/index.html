@@ -1,21 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Mi Cole</title>
+  <title>CED — Centro Educativo Digital</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta name="description" content="CED conecta administración, maestros, estudiantes y familias en una sola plataforma educativa.">
+  <link rel="icon" type="image/png" href="assets/ced/ced-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
   <script>
     (function () {
-      var theme = localStorage.getItem('mc-theme');
-      var dark =
-        theme === 'dark' ||
-        (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      if (dark) {
-        document.documentElement.classList.add('dark');
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
+      try {
+        localStorage.setItem('mc-theme', 'light');
+      } catch (e) {}
     })();
   </script>
 </head>

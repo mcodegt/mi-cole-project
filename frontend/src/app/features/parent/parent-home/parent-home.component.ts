@@ -30,6 +30,7 @@ interface DashboardData {
     <mc-page-header
       title="Bienvenido"
       [subtitle]="dashboard()?.parent_name ?? ''"
+      [showBack]="false"
     />
 
     @if (dashboard(); as d) {

@@ -16,7 +16,7 @@ interface CampusRow {
   standalone: true,
   imports: [TableModule, McPageHeaderComponent],
   template: `
-    <mc-page-header title="Sedes" subtitle="Campus del colegio" />
+    <mc-page-header title="Sedes" subtitle="Campus del colegio" backRoute="/app" />
 
     <div class="mc-card mc-table-card">
       <p-table

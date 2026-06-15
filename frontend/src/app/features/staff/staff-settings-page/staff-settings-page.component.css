@@ -1,0 +1,72 @@
+.settings-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 720px) {
+  .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.settings-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--mc-border);
+  border-radius: 1rem;
+  background: var(--mc-surface);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.settings-card:hover {
+  border-color: color-mix(in srgb, var(--mc-primary) 35%, var(--mc-border));
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
+  transform: translateY(-1px);
+}
+
+.settings-card__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--mc-primary) 12%, transparent);
+  color: var(--mc-primary);
+  font-size: 1.05rem;
+}
+
+.settings-card__copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-card__copy strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--mc-text);
+  font-size: 0.95rem;
+}
+
+.settings-card__copy span {
+  display: block;
+  color: var(--mc-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.settings-card__arrow {
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+  color: var(--mc-text-subtle);
+  font-size: 0.85rem;
+}
+
+.settings-empty {
+  padding: 1.25rem;
+  color: var(--mc-text-muted);
+  font-size: 0.9rem;
+}

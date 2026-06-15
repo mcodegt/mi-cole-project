@@ -2,9 +2,13 @@
   <div class="mc-app-shell__sidebar">
     <mc-modern-sidebar
       accent="staff"
-      brandTitle="Mi Cole"
+      brandTitle="CED"
+      [brandImageUrl]="schoolLogoUrl() ?? undefined"
       [brandSubtitle]="auth.session()?.staff?.school_name ?? 'Staff'"
       [navItems]="navItems()"
+      [showSettings]="showOwnerSettings()"
+      [settingsActive]="settingsRouteActive()"
+      settingsRoute="/app/settings"
       [userName]="auth.session()?.user?.full_name ?? ''"
       [userEmail]="auth.session()?.user?.email ?? ''"
       (logoutClick)="logout()"

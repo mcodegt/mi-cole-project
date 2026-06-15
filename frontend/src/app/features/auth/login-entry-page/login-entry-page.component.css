@@ -1,0 +1,253 @@
+@import '../ced-auth-layout.css';
+
+.login-entry__step {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ced-turquoise);
+}
+
+.login-entry__label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ced-gray-mid);
+}
+
+.login-entry__portal {
+  margin-bottom: 1.25rem;
+}
+
+.login-entry__portal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.login-entry__portal-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1.5px solid var(--ced-gray-border);
+  border-radius: 0.75rem;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.login-entry__portal-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.6rem;
+  background: rgb(15 76 129 / 0.07);
+  color: var(--ced-blue);
+  font-size: 1rem;
+}
+
+.login-entry__portal-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.login-entry__portal-copy strong {
+  display: block;
+  color: var(--ced-blue);
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+
+.login-entry__portal-copy span {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--ced-gray-mid);
+  font-size: 0.76rem;
+}
+
+.login-entry__portal-check {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: transparent;
+  transition: color 0.15s;
+}
+
+.login-entry__portal-card.is-active {
+  border-color: var(--ced-turquoise);
+  background: linear-gradient(90deg, rgb(24 183 201 / 0.08) 0%, #fff 55%);
+  box-shadow: 0 4px 16px rgb(24 183 201 / 0.12);
+}
+
+.login-entry__portal-card.is-active .login-entry__portal-icon {
+  background: linear-gradient(135deg, var(--ced-blue), var(--ced-turquoise));
+  color: #fff;
+}
+
+.login-entry__portal-card.is-active .login-entry__portal-check {
+  color: var(--ced-turquoise);
+}
+
+.login-entry__search {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.login-entry__search-wrap {
+  position: relative;
+}
+
+.login-entry__search-wrap .pi-search {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ced-gray-mid);
+  font-size: 0.95rem;
+}
+
+.login-entry__input {
+  width: 100%;
+  padding: 0.9rem 0.95rem 0.9rem 2.5rem;
+  border: 1.5px solid var(--ced-gray-border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  color: #263238;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.login-entry__input:focus {
+  outline: none;
+  border-color: var(--ced-turquoise);
+  box-shadow: 0 0 0 3px rgb(24 183 201 / 0.18);
+}
+
+.login-entry__results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+
+.login-entry__results-count {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ced-blue);
+  background: rgb(15 76 129 / 0.08);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.login-entry__hint,
+.login-entry__error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.login-entry__hint {
+  color: var(--ced-gray-mid);
+}
+
+.login-entry__error {
+  color: #dc2626;
+}
+
+.login-entry__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  max-height: 14rem;
+  overflow: auto;
+}
+
+.login-entry__results--campus {
+  max-height: none;
+}
+
+.login-entry__result {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--ced-gray-border);
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s, background 0.15s;
+}
+
+.login-entry__result:hover {
+  border-color: var(--ced-turquoise);
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(15 76 129 / 0.08);
+  transform: translateY(-1px);
+}
+
+.login-entry__result-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 0.55rem;
+  background: linear-gradient(135deg, rgb(15 76 129 / 0.12), rgb(24 183 201 / 0.15));
+  color: var(--ced-blue);
+}
+
+.login-entry__result-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.login-entry__result-text strong {
+  display: block;
+  color: var(--ced-blue);
+  font-size: 0.92rem;
+}
+
+.login-entry__result-text small {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--ced-gray-mid);
+  font-size: 0.78rem;
+}
+
+.login-entry__result-arrow {
+  flex-shrink: 0;
+  color: var(--ced-turquoise);
+  font-size: 0.85rem;
+}
+
+.login-entry__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ced-blue);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-entry__panel .ced-auth__panel-lead {
+  margin-bottom: 1rem;
+}

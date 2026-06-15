@@ -30,7 +30,7 @@ interface AssignmentRow {
   standalone: true,
   imports: [DatePipe, FormsModule, TableModule, TagModule, SelectModule, McPageHeaderComponent],
   template: `
-    <mc-page-header title="Tareas" subtitle="Tareas publicadas por el colegio" />
+    <mc-page-header title="Tareas" subtitle="Tareas publicadas por el colegio" backRoute="/parent" />
 
     <div class="mc-card mb-4">
       <label class="mb-1 block text-xs font-medium mc-text-muted">Hijo</label>

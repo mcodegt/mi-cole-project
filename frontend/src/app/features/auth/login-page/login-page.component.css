@@ -1,0 +1,182 @@
+@import '../ced-auth-layout.css';
+
+.ced-auth--login .ced-auth__home--panel {
+  margin-bottom: 0.75rem;
+  color: var(--ced-blue);
+  border-color: var(--ced-gray-border);
+  background: #f8fafc;
+}
+
+.ced-login-panel {
+  --ced-login-accent: var(--ced-blue);
+}
+
+.ced-login-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.ced-login-panel__logo {
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  object-fit: contain;
+  border-radius: 0.75rem;
+  border: 1px solid var(--ced-gray-border);
+  background: #fff;
+  padding: 0.25rem;
+}
+
+.ced-login-panel__titles {
+  min-width: 0;
+}
+
+.ced-login-panel__school {
+  margin: 0 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ced-gray-mid);
+}
+
+.ced-login-panel__welcome {
+  margin: 0.35rem 0 0.25rem;
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--ced-blue);
+  letter-spacing: -0.02em;
+}
+
+.ced-login-panel__campus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--ced-gray-mid);
+}
+
+.ced-login-portal-badge {
+  display: inline-block;
+  margin-bottom: 0.15rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgb(15 76 129 / 0.08);
+  color: var(--ced-blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ced-login-portal-badge--hero {
+  align-self: flex-start;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+
+.ced-auth--login .ced-auth__hero-school-block {
+  margin-bottom: 0.25rem;
+}
+
+.ced-auth--login .ced-auth__hero-school-block .ced-auth__hero-brand,
+.ced-auth--login .ced-auth__hero-school-block .ced-auth__school-mark {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.ced-auth--login .ced-auth__hero-divider {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.ced-auth--login .ced-auth__features {
+  margin-top: 0.35rem;
+  max-width: 22rem;
+}
+
+.ced-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.ced-login-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ced-gray-mid);
+}
+
+.ced-login-form__input {
+  min-height: 2.85rem;
+}
+
+.ced-login-form__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 2.85rem;
+  margin-top: 0.35rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: var(--ced-login-accent, var(--ced-blue));
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgb(15 76 129 / 0.22);
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.ced-login-form__submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgb(15 76 129 / 0.28);
+}
+
+.ced-login-form__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.ced-login-form__error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  background: #fef2f2;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+.ced-login-form__footer {
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ced-gray-border);
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.ced-login-form__footer a {
+  color: var(--ced-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ced-login-form__footer a:hover {
+  text-decoration: underline;
+}

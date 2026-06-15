@@ -2,7 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 
-const APP_NAME = 'Mi Cole';
+import { CED_BRAND } from '../brand/ced-brand';
+
+const APP_NAME = CED_BRAND.shortName;
 
 const PORTAL_LABELS: Record<string, string> = {
   platform: 'Platform',

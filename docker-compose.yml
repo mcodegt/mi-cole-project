@@ -1,21 +1,22 @@
-# Solo la app monolítica (Angular build + FastAPI). La base de datos queda fuera por defecto.
+# App monolítica (Angular build + FastAPI). La BD va en otro compose (recomendado en prod).
 #
-# Postgres en TU PC + app en Docker: dentro del contenedor `localhost` NO es tu máquina.
-# Por eso `environment` fuerza DATABASE_HOST=host.docker.internal (sale al host).
-# Si usás RDS u otro servidor remoto: comentá esa línea y pon el host en `backend/.env`.
+# ─── Producción (patrón mcflow) ─────────────────────────────────────────────
+# 1) Postgres dedicado:
+#      cp .env.postgres.example .env.postgres
+#      docker compose -f docker-compose.postgres.yml up -d
+# 2) backend/.env → DATABASE_HOST=host.docker.internal, DATABASE_PORT=5434, mismas credenciales
+# 3) App:
+#      docker compose -f docker-compose.prod.yml up -d
+#    (o este archivo con build: docker compose up -d --build)
 #
-# `backend/.env` aporta usuario, contraseña, puerto, nombre BD, JWT, CORS, etc.
+# ─── Desarrollo local ────────────────────────────────────────────────────────
+# Postgres en el host + app en Docker: `DATABASE_HOST=host.docker.internal` (abajo).
+# Esquema: cd mi-cole-docs/sql && python run_schema.py --bootstrap
+# Seeds:   cd backend && python -m app.cli seed-superadmin
 #
-# Esquema / semillas (desde el host, con Postgres accesible en localhost):
-#   cd backend && python -m app.cli apply-sql && python -m app.cli seed-superadmin
-#
-# Superadmin (contenedor en marcha):
-#   docker compose exec app python -m app.cli apply-sql
-#   docker compose exec app python -m app.cli seed-superadmin
-#
-# Postgres embebido (opcional, sin Postgres local):
+# Perfil rápido todo-en-docker (sin compose.postgres):
 #   docker compose --profile local-db up --build
-#   En ese caso cambiá DATABASE_HOST a `db` abajo (o comentá host.docker.internal).
+#   backend/.env: DATABASE_HOST=db, DATABASE_PORT=5432, user/pass micole
 
 services:
   app:

@@ -1,7 +1,7 @@
 import { NgClass } from '@angular/common';
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 
-import { ThemeService } from '../../core/theme/theme.service';
+import { CED_BRAND } from '../../core/brand/ced-brand';
 
 @Component({
   selector: 'mc-portal-mobile-header',
@@ -10,8 +10,12 @@ import { ThemeService } from '../../core/theme/theme.service';
   template: `
     <header class="mc-portal-header">
       <div class="mc-portal-header__brand">
-        <div class="mc-portal-header__logo" [ngClass]="logoAccentClass()">
-          <i [class]="brandIcon()"></i>
+        <div class="mc-portal-header__logo" [ngClass]="logoClasses()">
+          @if (brandImageUrl()) {
+            <img class="mc-portal-header__logo-img" [src]="brandImageUrl()" alt="" />
+          } @else {
+            <i [class]="brandIcon()"></i>
+          }
         </div>
         <div class="min-w-0">
           <p class="truncate text-sm font-bold mc-text">{{ brandTitle() }}</p>
@@ -51,10 +55,6 @@ import { ThemeService } from '../../core/theme/theme.service';
             }
           </div>
         </div>
-        <button type="button" class="mc-portal-header__menu-item" role="menuitem" (click)="onThemeToggle()">
-          <i [class]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"></i>
-          {{ theme.preferenceLabel() }}
-        </button>
         <button type="button" class="mc-portal-header__menu-item mc-portal-header__menu-item--danger" role="menuitem" (click)="onLogout()">
           <i class="pi pi-sign-out"></i>
           Cerrar sesión
@@ -101,6 +101,17 @@ import { ThemeService } from '../../core/theme/theme.service';
         border-radius: 9999px;
         font-size: 0.6875rem;
         font-weight: 700;
+      }
+
+      .mc-portal-header__logo--image {
+        background: #fff;
+        padding: 0.2rem;
+      }
+
+      .mc-portal-header__logo-img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
       }
 
       .mc-portal-header__logo--parent,
@@ -183,11 +194,10 @@ import { ThemeService } from '../../core/theme/theme.service';
   ],
 })
 export class McPortalMobileHeaderComponent {
-  readonly theme = inject(ThemeService);
-
-  readonly brandTitle = input('Mi Cole');
+  readonly brandTitle = input(CED_BRAND.shortName);
   readonly brandSubtitle = input<string | undefined>(undefined);
   readonly brandIcon = input('pi pi-graduation-cap');
+  readonly brandImageUrl = input<string | undefined>(CED_BRAND.assets.icon);
   readonly accent = input<'parent' | 'student'>('parent');
   readonly userName = input('');
   readonly userEmail = input('');
@@ -198,6 +208,14 @@ export class McPortalMobileHeaderComponent {
 
   logoAccentClass(): string {
     return `mc-portal-header__logo--${this.accent()}`;
+  }
+
+  logoClasses(): string[] {
+    const classes = [this.logoAccentClass()];
+    if (this.brandImageUrl()) {
+      classes.push('mc-portal-header__logo--image');
+    }
+    return classes;
   }
 
   userInitials(): string {
@@ -220,11 +238,6 @@ export class McPortalMobileHeaderComponent {
 
   closeMenu(): void {
     this.menuOpen.set(false);
-  }
-
-  onThemeToggle(): void {
-    this.theme.toggle();
-    this.closeMenu();
   }
 
   onLogout(): void {

@@ -41,7 +41,7 @@ interface InviteResult {
     McPageHeaderComponent,
   ],
   template: `
-    <mc-page-header title="Padres" [subtitle]="total() + ' registrados en el colegio'" />
+    <mc-page-header title="Padres" [subtitle]="total() + ' registrados en el colegio'" backRoute="/app" />
 
     <div class="mc-card mb-4 flex flex-wrap items-end gap-3 p-4">
       <div class="min-w-[12rem] flex-1">

@@ -11,6 +11,7 @@ import {
   MeResponse,
   MembershipSummary,
   Portal,
+  PublicSchoolSearchResponse,
 } from '../models/auth.models';
 
 const STORAGE_KEY = 'micole.session';
@@ -120,6 +121,12 @@ export class AuthService {
     return this.http.get<LoginContextResponse>(`${this.api}/public/login-context`, { params });
   }
 
+  searchSchools(q: string): Observable<PublicSchoolSearchResponse> {
+    return this.http.get<PublicSchoolSearchResponse>(`${this.api}/public/schools/search`, {
+      params: { q },
+    });
+  }
+
   hasPermission(code: string): boolean {
     const s = this.sessionState();
     if (!s) {
@@ -136,6 +143,39 @@ export class AuthService {
 
   isBillingRestricted(): boolean {
     return this.sessionState()?.staff?.billing_access_mode === 'payment_evidence_only';
+  }
+
+  /** Dueño del colegio (rol owner o permisos equivalentes). */
+  isSchoolOwner(): boolean {
+    const staff = this.sessionState()?.staff;
+    if (!staff) {
+      return false;
+    }
+    if (staff.role_code === 'owner') {
+      return true;
+    }
+    // Fallback: sesiones sin role_code o backend anterior
+    return (
+      staff.permissions.includes('school.team.read') ||
+      staff.permissions.includes('school.settings.read')
+    );
+  }
+
+  refreshStaffContextIfNeeded(): void {
+    const current = this.sessionState();
+    if (current?.portal !== 'staff' || !current.accessToken) {
+      return;
+    }
+    if (current.staff?.role_code) {
+      return;
+    }
+    firstValueFrom(
+      this.http.get<MeResponse>(`${this.api}/auth/me`, {
+        headers: { Authorization: `Bearer ${current.accessToken}` },
+      }),
+    )
+      .then((me) => this.applyMe(current.accessToken, current.refreshToken, me))
+      .catch(() => undefined);
   }
 
   portalHome(portal: Portal): string[] {

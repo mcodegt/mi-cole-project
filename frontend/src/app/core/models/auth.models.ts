@@ -17,6 +17,7 @@ export interface StaffMeContext {
   school_id: string;
   school_slug: string;
   school_name: string;
+  role_code?: string;
   billing_access_mode: 'full' | 'payment_evidence_only';
   permissions: string[];
   all_campuses: boolean;
@@ -108,4 +109,20 @@ export interface LoginContextResponse {
     logo_url?: string;
   };
   login_path: string;
+}
+
+export interface PublicCampusSearchItem {
+  slug: string;
+  name: string;
+}
+
+export interface PublicSchoolSearchItem {
+  slug: string;
+  name: string;
+  campuses: PublicCampusSearchItem[];
+}
+
+export interface PublicSchoolSearchResponse {
+  items: PublicSchoolSearchItem[];
+  total: number;
 }

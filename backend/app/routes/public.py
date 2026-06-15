@@ -6,7 +6,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.branding import LoginContextResponse, LoginPortal
+from app.schemas.public_search import PublicSchoolSearchResponse
 from app.services.branding_service import get_login_context
+from app.services.public_search_service import search_schools_for_login
 from app.services.storage_service import get_storage
 
 router = APIRouter(prefix="/public", tags=["public"])
@@ -22,6 +24,15 @@ def login_context(
     return get_login_context(
         db, school_slug=school_slug, campus_slug=campus_slug, portal=portal
     )
+
+
+@router.get("/schools/search", response_model=PublicSchoolSearchResponse)
+def schools_search(
+    q: str = Query("", max_length=120),
+    limit: int = Query(20, ge=1, le=20),
+    db: Session = Depends(get_db),
+) -> PublicSchoolSearchResponse:
+    return search_schools_for_login(db, q=q, limit=limit)
 
 
 @router.get("/branding-file")

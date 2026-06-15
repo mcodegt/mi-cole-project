@@ -1,0 +1,154 @@
+<div class="ced-landing">
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="site-header__logo" routerLink="/" fragment="inicio" (click)="closeNav()">
+        <img [src]="brand.assets.logo" [alt]="brand.shortName + ' — ' + brand.fullName" class="ced-logo-img" />
+      </a>
+      <button type="button" class="menu-toggle" aria-label="Menú" (click)="toggleNav()">☰</button>
+      <nav class="site-nav" [class.is-open]="navOpen()">
+        @for (link of navLinks; track link.fragment) {
+          <a [href]="'#' + link.fragment" (click)="closeNav()">{{ link.label }}</a>
+        }
+        <a class="btn btn-login" [routerLink]="auth.entry" (click)="closeNav()">Inicio de sesión</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <h1>La plataforma que tu centro educativo necesita</h1>
+          <p class="hero__lead">
+            <strong>{{ brand.shortName }}</strong> es una solución de gestión escolar que conecta
+            administración, maestros, estudiantes y padres de familia en una sola plataforma.
+          </p>
+          <a class="btn btn-primary btn-lg" [routerLink]="auth.entry">Ingresar a mi colegio</a>
+        </div>
+        <div class="hero__mockup" aria-hidden="true">
+          <div class="login-preview">
+            <p class="login-preview__title">Iniciar sesión</p>
+            <p class="login-preview__hint">Accede con el colegio y sede de tu institución</p>
+            <div class="login-preview__field"><span>Correo</span></div>
+            <div class="login-preview__field"><span>Contraseña</span></div>
+            <div class="login-preview__btn">Entrar</div>
+            <p class="login-preview__powered">Powered by MCodeGT</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-band">
+      <div class="container stats-band__grid">
+        @for (stat of stats; track stat.label) {
+          <div class="stats-band__item">
+            <i [class]="stat.icon"></i>
+            <div>
+              <strong>{{ stat.value }}</strong>
+              <span>{{ stat.label }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    @for (role of roles; track role.id) {
+      <section class="role-section" [class.role-section--alt]="role.reversed" [id]="role.id">
+        <div class="container role-section__grid" [class.role-section__grid--reverse]="role.reversed">
+          <div class="role-section__copy">
+            <h2>{{ role.title }}</h2>
+            <p>{{ role.description }}</p>
+            <ul class="role-section__list">
+              @for (item of role.bullets; track item) {
+                <li><i class="pi pi-check"></i> {{ item }}</li>
+              }
+            </ul>
+            <a class="role-section__link" [routerLink]="auth.entryForPortal(role.portal)">
+              {{ role.cta }} <i class="pi pi-arrow-right"></i>
+            </a>
+          </div>
+          <div class="role-section__visual">
+            <div class="role-card">
+              <div class="role-card__icon"><i [class]="role.icon"></i></div>
+              <p class="role-card__label">{{ role.title }}</p>
+              <div class="role-card__lines">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <section class="value-band">
+      <div class="container value-band__grid">
+        <article>
+          <i class="pi pi-sitemap"></i>
+          <h3>Gestión centralizada</h3>
+          <p>Estudiantes, sedes, padres de familia y equipo en un solo lugar.</p>
+        </article>
+        <article>
+          <i class="pi pi-palette"></i>
+          <h3>Identidad del colegio</h3>
+          <p>Logo, colores y acceso con la marca de tu institución.</p>
+        </article>
+        <article>
+          <i class="pi pi-chart-line"></i>
+          <h3>Seguimiento académico</h3>
+          <p>Tareas y entregas visibles para toda la comunidad educativa.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="contact-band" id="contacto">
+      <div class="container contact-band__inner">
+        <h2>Contáctanos y comienza hoy</h2>
+        <p>
+          Agenda una demo con MCodeGT o ingresa con el nombre de tu institución para explorar
+          {{ brand.shortName }} con tu equipo.
+        </p>
+        <div class="contact-band__actions">
+          <a class="btn btn-white btn-lg" [href]="'mailto:' + demoEmail + '?subject=Demo%20CED'">
+            Agenda una demo
+          </a>
+          <a class="btn btn-outline-white btn-lg" [routerLink]="auth.entry">Ingresar a mi colegio</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__grid">
+      <div class="site-footer__col">
+        <img [src]="brand.assets.logo" [alt]="brand.shortName" class="site-footer__logo" />
+        <p>{{ brand.tagline }}</p>
+        <a [href]="'mailto:' + demoEmail">info&#64;mcodegt.com</a>
+      </div>
+      <div class="site-footer__col">
+        <h4>{{ brand.shortName }}</h4>
+        <a [routerLink]="auth.entry">Ingresar a mi colegio</a>
+        <a [routerLink]="auth.entryForPortal('staff')">Administradores y maestros</a>
+        <a [routerLink]="auth.entryForPortal('parent')">Padres de familia</a>
+        <a [routerLink]="auth.entryForPortal('student')">Estudiantes</a>
+      </div>
+      <div class="site-footer__col">
+        <h4>MCodeGT</h4>
+        <a href="https://www.mcodegt.com" target="_blank" rel="noopener">mcodegt.com</a>
+        <a href="#contacto">Solicitar demo</a>
+      </div>
+    </div>
+    <p class="site-footer__copy">
+      © {{ year }} {{ brand.fullName }} ({{ brand.shortName }}) by MCodeGT · Guatemala
+    </p>
+  </footer>
+
+  <a
+    class="whatsapp-fab"
+    [href]="whatsappUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Contactar por WhatsApp"
+  >
+    <i class="pi pi-whatsapp" aria-hidden="true"></i>
+  </a>
+</div>

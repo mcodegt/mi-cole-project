@@ -1,0 +1,29 @@
+# App monolito en producción (imagen pre-construida), sin Postgres embebido.
+# La BD corre aparte: docker-compose.postgres.yml → micole-postgres
+#
+# Build y push (CI o manual):
+#   docker build -f Dockerfile -t mcodegt/mi-cole:latest ..
+#   docker push mcodegt/mi-cole:latest
+#
+# En el servidor:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Requiere backend/.env con DATABASE_HOST=host.docker.internal y DATABASE_PORT=5434 (o el de .env.postgres)
+
+services:
+  app:
+    image: mcodegt/mi-cole:latest
+    container_name: micole-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${APP_PORT:-8004}:8000"
+    env_file:
+      - backend/.env
+    environment:
+      STATIC_ROOT: /app/static/browser
+      DATABASE_HOST: host.docker.internal
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      PGCLIENTENCODING: UTF8
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

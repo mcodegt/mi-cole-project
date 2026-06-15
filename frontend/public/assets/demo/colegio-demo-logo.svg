@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Colegio Demo">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#18b7c9"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="28" fill="url(#bg)"/>
+  <path d="M80 34 L118 54 V98 C118 108 102 116 80 124 C58 116 42 108 42 98 V54 Z" fill="#fff" opacity="0.95"/>
+  <rect x="68" y="78" width="24" height="28" rx="2" fill="#1e40af"/>
+  <rect x="58" y="66" width="10" height="10" rx="1.5" fill="#18b7c9"/>
+  <rect x="92" y="66" width="10" height="10" rx="1.5" fill="#18b7c9"/>
+  <text x="80" y="148" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="14" font-weight="700">Colegio Demo</text>
+</svg>

@@ -57,6 +57,20 @@ def _get_branding_row(db: Session, campus_id: uuid.UUID, portal: str) -> Optiona
     return db.get(CampusPortalBranding, {"campus_id": campus_id, "portal": portal})
 
 
+def _resolve_establishment_logo(
+    db: Session,
+    *,
+    school: School,
+    branding: Optional[CampusPortalBranding],
+) -> Optional[str]:
+    if branding and branding.logo_storage_key:
+        return _public_logo_url(branding.logo_storage_key)
+    profile = db.get(SchoolProfile, school.id)
+    if profile and profile.logo_url:
+        return profile.logo_url
+    return None
+
+
 def _presentation_for(
     db: Session,
     *,
@@ -64,9 +78,10 @@ def _presentation_for(
     campus: Campus,
     portal: str,
     branding: Optional[CampusPortalBranding],
+    use_platform_logo_fallback: bool = False,
 ) -> BrandingPresentation:
     settings = get_settings()
-    logo_url: Optional[str] = None
+    logo_url = _resolve_establishment_logo(db, school=school, branding=branding)
     title: Optional[str] = None
     subtitle: Optional[str] = None
     color: Optional[str] = None
@@ -75,26 +90,20 @@ def _presentation_for(
         title = branding.login_title
         subtitle = branding.login_subtitle
         color = branding.primary_color_hex
-        logo_url = _public_logo_url(branding.logo_storage_key)
 
-    if not logo_url:
-        profile = db.get(SchoolProfile, school.id)
-        if profile and profile.logo_url:
-            logo_url = profile.logo_url
-
-    if not logo_url and settings.platform_login_logo_url:
+    if not logo_url and use_platform_logo_fallback and settings.platform_login_logo_url:
         logo_url = settings.platform_login_logo_url
 
     if not title:
         portal_labels = {
-            "staff": "Personal",
-            "parent": "Padres",
+            "staff": "Administración y maestros",
+            "parent": "Padres de familia",
             "student": "Estudiantes",
         }
         title = f"{portal_labels.get(portal, 'Acceso')} — {campus.name}"
 
     if not subtitle:
-        subtitle = settings.platform_login_subtitle or school.name
+        subtitle = school.name
 
     if not color:
         profile = db.get(SchoolProfile, school.id)

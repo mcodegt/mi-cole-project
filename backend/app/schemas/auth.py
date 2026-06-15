@@ -53,6 +53,7 @@ class StaffMeContext(BaseModel):
     school_id: UUID
     school_slug: str
     school_name: str
+    role_code: str
     billing_access_mode: str
     permissions: list[str]
     all_campuses: bool

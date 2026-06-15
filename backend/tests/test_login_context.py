@@ -22,8 +22,8 @@ def test_login_context_three_portals_norte(client):
         student.json()["branding"]["login_title"],
     }
     assert titles == {
-        "Personal — Sede Norte",
-        "Padres — Sede Norte",
+        "Administración y maestros — Sede Norte",
+        "Padres de familia — Sede Norte",
         "Estudiantes — Sede Norte",
     }
     assert staff.json()["login_path"] == "/login/staff/colegio-demo/sede-norte"
@@ -97,6 +97,27 @@ def test_campus_access_links(client, demo_users):
     assert links["staff"] == "/login/staff/colegio-demo/sede-norte"
     assert links["parent"] == "/login/parent/colegio-demo/sede-norte"
     assert links["student"] == "/login/student/colegio-demo/sede-norte"
+
+
+def test_login_context_without_platform_logo_fallback(client, monkeypatch):
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    monkeypatch.setenv("PLATFORM_LOGIN_LOGO_URL", "https://example.com/ced.png")
+
+    response = client.get(
+        "/api/v1/public/login-context",
+        params={
+            "school_slug": "colegio-demo",
+            "campus_slug": "sede-norte",
+            "portal": "staff",
+        },
+    )
+    assert response.status_code == 200
+    logo_url = response.json()["branding"]["logo_url"]
+    assert logo_url != "https://example.com/ced.png"
+
+    get_settings.cache_clear()
 
 
 def test_upload_portal_logo(client, demo_users, tmp_path, monkeypatch):

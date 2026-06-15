@@ -47,6 +47,7 @@ interface InviteResult {
     <mc-page-header
       title="Estudiantes"
       [subtitle]="total() + ' registrados en el colegio'"
+      backRoute="/app"
     />
 
     <div class="mc-card mb-4 flex flex-wrap items-end gap-3 p-4">

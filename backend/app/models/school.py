@@ -55,6 +55,7 @@ class SchoolProfile(Base):
     )
     logo_url: Mapped[Optional[str]] = mapped_column(nullable=True)
     sidebar_color: Mapped[Optional[str]] = mapped_column(String(32), default="#ffffff")
+    sidebar_text_color: Mapped[Optional[str]] = mapped_column(String(32), default="#0f172a")
 
 
 class SubscriptionPlan(Base):

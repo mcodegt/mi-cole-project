@@ -19,7 +19,7 @@ interface TeamMemberRow {
   standalone: true,
   imports: [TableModule, McPageHeaderComponent],
   template: `
-    <mc-page-header title="Equipo" subtitle="Membresías staff del colegio" />
+    <mc-page-header title="Equipo" subtitle="Membresías staff del colegio" backRoute="/app/settings" />
 
     <div class="mc-card mc-table-card">
       <p-table

@@ -14,6 +14,7 @@ import { environment } from '../../../../environments/environment';
     <mc-page-header
       title="Dashboard"
       [subtitle]="'Bienvenido, ' + (auth.session()?.user?.full_name ?? '')"
+      [showBack]="false"
     />
 
     @if (dashboard(); as d) {

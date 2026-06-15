@@ -26,12 +26,8 @@ interface AssignmentDetail {
   standalone: true,
   imports: [DatePipe, FormsModule, RouterLink, TagModule, TextareaModule, MessageModule, McPageHeaderComponent],
   template: `
-    <a routerLink="/student/assignments" class="mb-4 inline-flex min-h-[44px] items-center gap-1 text-sm text-indigo-500">
-      <i class="pi pi-arrow-left"></i> Volver a tareas
-    </a>
-
     @if (assignment(); as a) {
-      <mc-page-header [title]="a.title" subtitle="Detalle de la tarea" />
+      <mc-page-header [title]="a.title" subtitle="Detalle de la tarea" backRoute="/student/assignments" />
 
       <div class="mc-card mb-4 space-y-3">
         @if (a.description) {

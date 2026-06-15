@@ -1,0 +1,135 @@
+<div class="ced-auth login-entry">
+  <aside class="ced-auth__hero">
+    <a class="ced-auth__home" routerLink="/">← Inicio</a>
+
+    <div class="ced-auth__hero-body">
+      <div class="ced-auth__hero-wordmark">
+        <img class="ced-auth__hero-icon" [src]="brand.assets.icon" alt="" aria-hidden="true" />
+        <div class="ced-auth__hero-wordmark-text">
+          <p class="ced-auth__hero-name">{{ brand.shortName }}</p>
+          <p class="ced-auth__hero-subname">{{ brand.fullName }}</p>
+        </div>
+      </div>
+      <p class="ced-auth__hero-tagline">{{ brand.tagline }}</p>
+      <p class="ced-auth__hero-lead">
+        Más orden, mejor comunicación y menos procesos manuales para tu centro educativo.
+      </p>
+      <ul class="ced-auth__modules">
+        @for (mod of heroModules; track mod.label) {
+          <li class="ced-auth__module">
+            <i [class]="mod.icon"></i>
+            {{ mod.label }}
+          </li>
+        }
+      </ul>
+    </div>
+
+    <p class="ced-auth__hero-foot">{{ brand.fullName }} by MCodeGT · Guatemala</p>
+  </aside>
+
+  <main class="ced-auth__main">
+    <div class="ced-auth__panel login-entry__panel">
+      @if (!selectedSchool()) {
+        <p class="login-entry__step">Paso 1 de 2</p>
+        <h2 class="ced-auth__panel-title">Busca tu centro educativo</h2>
+        <p class="ced-auth__panel-lead">
+          Elige tu perfil e ingresa el nombre del colegio donde estudias o trabajas.
+        </p>
+
+        <div class="login-entry__portal">
+          <span class="login-entry__label">¿Quién ingresa?</span>
+          <div class="login-entry__portal-list">
+            @for (option of portalCards; track option.value) {
+              <button
+                type="button"
+                class="login-entry__portal-card"
+                [class.is-active]="portal() === option.value"
+                (click)="setPortal(option.value)"
+              >
+                <span class="login-entry__portal-icon"><i [class]="option.icon"></i></span>
+                <span class="login-entry__portal-copy">
+                  <strong>{{ option.label }}</strong>
+                  <span>{{ option.hint }}</span>
+                </span>
+                <i class="pi pi-check login-entry__portal-check"></i>
+              </button>
+            }
+          </div>
+        </div>
+
+        <label class="login-entry__search">
+          <span class="login-entry__label">Nombre del colegio</span>
+          <div class="login-entry__search-wrap">
+            <i class="pi pi-search"></i>
+            <input
+              type="search"
+              class="login-entry__input"
+              [formControl]="searchControl"
+              placeholder="Ej. Colegio Valle del Saber"
+              autocomplete="organization"
+            />
+          </div>
+        </label>
+
+        @if (searching()) {
+          <p class="login-entry__hint"><i class="pi pi-spin pi-spinner"></i> Buscando colegios…</p>
+        } @else if (searchError()) {
+          <p class="login-entry__error">{{ searchError() }}</p>
+        } @else if (searchControl.value.trim().length >= 2 && results().length === 0) {
+          <p class="login-entry__hint">No encontramos colegios con ese nombre. Verifica la ortografía.</p>
+        } @else if (searchControl.value.trim().length > 0 && searchControl.value.trim().length < 2) {
+          <p class="login-entry__hint">Escribe al menos 2 caracteres para buscar.</p>
+        }
+
+        @if (results().length > 0) {
+          <div class="login-entry__results-head">
+            <span class="login-entry__label">Resultados</span>
+            <span class="login-entry__results-count">{{ results().length }}</span>
+          </div>
+          <ul class="login-entry__results">
+            @for (school of results(); track school.slug) {
+              <li>
+                <button type="button" class="login-entry__result" (click)="selectSchool(school)">
+                  <span class="login-entry__result-icon"><i class="pi pi-building"></i></span>
+                  <span class="login-entry__result-text">
+                    <strong>{{ school.name }}</strong>
+                    <small>
+                      {{ school.campuses.length }}
+                      {{ school.campuses.length === 1 ? 'sede' : 'sedes' }} · {{ portalLabels[portal()] }}
+                    </small>
+                  </span>
+                  <i class="pi pi-arrow-right login-entry__result-arrow"></i>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      } @else {
+        <p class="login-entry__step">Paso 2 de 2</p>
+        <button type="button" class="login-entry__back" (click)="backToSearch()">
+          <i class="pi pi-arrow-left"></i> Cambiar colegio
+        </button>
+        <h2 class="ced-auth__panel-title">Elige tu sede</h2>
+        <p class="ced-auth__panel-lead">
+          <strong>{{ selectedSchool()!.name }}</strong><br />
+          Portal: {{ portalLabels[portal()] }}
+        </p>
+
+        <ul class="login-entry__results login-entry__results--campus">
+          @for (campus of selectedSchool()!.campuses; track campus.slug) {
+            <li>
+              <button type="button" class="login-entry__result" (click)="selectCampus(campus.slug)">
+                <span class="login-entry__result-icon"><i class="pi pi-map-marker"></i></span>
+                <span class="login-entry__result-text">
+                  <strong>{{ campus.name }}</strong>
+                  <small>Continuar al login</small>
+                </span>
+                <i class="pi pi-arrow-right login-entry__result-arrow"></i>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </main>
+</div>

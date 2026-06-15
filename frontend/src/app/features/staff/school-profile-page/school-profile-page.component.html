@@ -1,0 +1,146 @@
+<mc-page-header
+  title="Perfil del colegio"
+  subtitle="Logo, colores del menú lateral y apariencia del portal"
+  backRoute="/app/settings"
+/>
+
+<p-toast />
+
+@if (loading()) {
+  <div class="mc-card profile-loading">
+    <i class="pi pi-spin pi-spinner"></i> Cargando perfil…
+  </div>
+} @else {
+  <div class="profile-grid">
+    <section class="mc-card profile-card">
+      <h2 class="profile-card__title">Logo del colegio</h2>
+      <p class="profile-card__lead">
+        Se muestra en el menú lateral y en las pantallas de login. Puede usar una URL pública o subir
+        PNG/JPG (máx. 2 MB).
+      </p>
+
+      <div class="profile-logo-preview">
+        @if (logoUrl) {
+          <img [src]="logoUrl" [alt]="schoolName" />
+        } @else {
+          <span class="profile-logo-preview__empty">{{ schoolName }}</span>
+        }
+      </div>
+
+      <label class="profile-field">
+        <span>URL del logo</span>
+        <input
+          type="url"
+          class="mc-input"
+          [(ngModel)]="logoUrl"
+          placeholder="https://… o /assets/…"
+          [disabled]="!canWrite()"
+        />
+      </label>
+
+      @if (canWrite()) {
+        <div class="profile-actions profile-actions--stack">
+          <p-fileUpload
+            mode="basic"
+            chooseLabel="Subir imagen"
+            [customUpload]="true"
+            [auto]="true"
+            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+            (uploadHandler)="onLogoUpload($event)"
+          />
+          <button
+            type="button"
+            class="mc-btn-secondary"
+            [disabled]="suggestingFromLogo() || !logoUrl"
+            (click)="suggestColorFromLogo()"
+          >
+            @if (suggestingFromLogo()) {
+              <i class="pi pi-spin pi-spinner"></i>
+            } @else {
+              <i class="pi pi-palette"></i>
+            }
+            Sugerir color del menú desde la imagen
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="mc-card profile-card">
+      <h2 class="profile-card__title">Nombre del colegio</h2>
+      <p class="profile-card__lead">Título que aparece debajo del logo en el menú.</p>
+      <p class="profile-school-name">{{ schoolName }}</p>
+    </section>
+
+    <section class="mc-card profile-card profile-card--wide">
+      <h2 class="profile-card__title">Color del menú lateral</h2>
+      <p class="profile-card__lead">Formato #RRGGBB. Al cambiar el fondo se sugiere automáticamente el color del texto.</p>
+
+      <div class="profile-color-grid">
+        <label class="profile-field">
+          <span>Fondo del menú</span>
+          <div class="profile-color-input">
+            <input type="color" [(ngModel)]="sidebarColor" [disabled]="!canWrite()" (ngModelChange)="onSidebarColorChange()" />
+            <input
+              type="text"
+              class="mc-input"
+              [(ngModel)]="sidebarColor"
+              maxlength="7"
+              [disabled]="!canWrite()"
+              (ngModelChange)="onSidebarColorChange()"
+            />
+          </div>
+        </label>
+
+        <label class="profile-field">
+          <span>Color del texto</span>
+          <div class="profile-color-input">
+            <input type="color" [(ngModel)]="sidebarTextColor" [disabled]="!canWrite()" />
+            <input
+              type="text"
+              class="mc-input"
+              [(ngModel)]="sidebarTextColor"
+              maxlength="7"
+              [disabled]="!canWrite()"
+            />
+          </div>
+          <p class="profile-suggest">
+            Sugerido: <strong>{{ suggestedTextColor() }}</strong>
+            @if (canWrite()) {
+              <button type="button" class="profile-link-btn" (click)="applySuggestedTextColor()">Usar sugerido</button>
+            }
+          </p>
+        </label>
+      </div>
+
+      <div class="profile-preview" [style.background]="sidebarColor" [style.color]="sidebarTextColor">
+        <div class="profile-preview__brand">
+          @if (logoUrl) {
+            <div class="profile-preview__logo-frame">
+              <img [src]="logoUrl" alt="" />
+            </div>
+          }
+          <strong>{{ schoolName }}</strong>
+        </div>
+        <div class="profile-preview__item profile-preview__item--active">
+          <i class="pi pi-home"></i> Inicio
+        </div>
+        <div class="profile-preview__item"><i class="pi pi-building"></i> Sedes</div>
+        <div class="profile-preview__item"><i class="pi pi-users"></i> Estudiantes</div>
+      </div>
+
+      @if (canWrite()) {
+        <div class="profile-actions">
+          <button type="button" class="mc-btn-primary" [disabled]="saving()" (click)="save()">
+            {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+          </button>
+          <button type="button" class="mc-btn-secondary" [disabled]="saving()" (click)="clearLogo()">
+            Quitar logo
+          </button>
+          <button type="button" class="mc-btn-secondary" [disabled]="saving()" (click)="restoreDefaultColors()">
+            Restaurar colores por defecto
+          </button>
+        </div>
+      }
+    </section>
+  </div>
+}

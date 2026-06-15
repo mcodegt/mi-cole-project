@@ -60,23 +60,40 @@ def _school_to_read(school: School, settings: Optional[SchoolSettings]) -> Schoo
     )
 
 
+def _owner_permission_codes(db: Session) -> list[Permission]:
+    return list(
+        db.scalars(
+            select(Permission).where(
+                or_(*[Permission.code.like(f"{p}%") for p in SCHOOL_OWNER_PERMISSION_PREFIXES])
+            )
+        ).all()
+    )
+
+
+def _sync_role_permissions(db: Session, role: Role, permissions: list[Permission]) -> None:
+    existing = set(
+        db.scalars(select(RolePermission.permission_id).where(RolePermission.role_id == role.id)).all()
+    )
+    for perm in permissions:
+        if perm.id not in existing:
+            db.add(RolePermission(role_id=role.id, permission_id=perm.id))
+
+
 def _ensure_owner_role(db: Session, school_id: uuid.UUID) -> Role:
     role = db.scalar(
         select(Role).where(Role.code == "owner", Role.scope == "school", Role.school_id == school_id)
     )
+    owner_perms = _owner_permission_codes(db)
     if role:
+        _sync_role_permissions(db, role, owner_perms)
+        db.flush()
         return role
 
     role = Role(code="owner", name="Dueño", scope="school", school_id=school_id)
     db.add(role)
     db.flush()
 
-    perms = db.scalars(
-        select(Permission).where(
-            or_(*[Permission.code.like(f"{p}%") for p in SCHOOL_OWNER_PERMISSION_PREFIXES])
-        )
-    ).all()
-    for perm in perms:
+    for perm in owner_perms:
         db.add(RolePermission(role_id=role.id, permission_id=perm.id))
 
     db.flush()

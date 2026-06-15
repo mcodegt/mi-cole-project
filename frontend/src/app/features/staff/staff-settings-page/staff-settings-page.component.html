@@ -1,0 +1,22 @@
+<mc-page-header
+  title="Configuración"
+  subtitle="Administración del colegio — solo dueño"
+  backRoute="/app"
+/>
+
+<div class="settings-grid">
+  @for (link of links(); track link.route) {
+    <a class="settings-card" [routerLink]="link.route">
+      <span class="settings-card__icon"><i [class]="link.icon"></i></span>
+      <span class="settings-card__copy">
+        <strong>{{ link.title }}</strong>
+        <span>{{ link.description }}</span>
+      </span>
+      <i class="pi pi-arrow-right settings-card__arrow"></i>
+    </a>
+  } @empty {
+    <div class="mc-card settings-empty">
+      No hay módulos de configuración disponibles para tu rol.
+    </div>
+  }
+</div>

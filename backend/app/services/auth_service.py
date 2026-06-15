@@ -570,6 +570,7 @@ def _staff_me_context(db: Session, *, school_id: uuid.UUID, membership_id: uuid.
         school_id=school.id,
         school_slug=school.slug,
         school_name=school.name,
+        role_code=role.code if role else "",
         billing_access_mode=school.billing_access_mode,
         permissions=_school_permission_codes(db, membership.role_id),
         all_campuses=membership.all_campuses,

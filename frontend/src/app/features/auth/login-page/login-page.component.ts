@@ -4,14 +4,76 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { BrandingThemeService } from '../../../core/branding/branding-theme.service';
+import { ensureButtonAccent } from '../../../core/color/sidebar-color.utils';
+import { CED_AUTH_ROUTES, CED_BRAND } from '../../../core/brand/ced-brand';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LoginContextResponse, Portal } from '../../../core/models/auth.models';
+
+type SchoolPortal = Extract<Portal, 'staff' | 'parent' | 'student'>;
+
+interface HeroFeature {
+  icon: string;
+  label: string;
+}
+
+interface PortalLoginCopy {
+  badge: string;
+  welcome: string;
+  lead: string;
+  submit: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  heroFeatures: HeroFeature[];
+}
+
+const PORTAL_LOGIN_COPY: Record<SchoolPortal, PortalLoginCopy> = {
+  staff: {
+    badge: 'Administración',
+    welcome: 'Bienvenido, equipo del colegio',
+    lead: 'Gestiona sedes, estudiantes y operación diaria.',
+    submit: 'Entrar al panel',
+    emailLabel: 'Correo institucional',
+    emailPlaceholder: 'tu@colegio.edu',
+    heroFeatures: [
+      { icon: 'pi pi-building', label: 'Administración' },
+      { icon: 'pi pi-users', label: 'Maestros' },
+      { icon: 'pi pi-chart-bar', label: 'Reportes' },
+    ],
+  },
+  parent: {
+    badge: 'Padres de familia',
+    welcome: 'Bienvenido, padre de familia',
+    lead: 'Consulta avisos, calificaciones y comunicación del colegio.',
+    submit: 'Entrar al portal',
+    emailLabel: 'Correo registrado',
+    emailPlaceholder: 'padre@ejemplo.com',
+    heroFeatures: [
+      { icon: 'pi pi-bell', label: 'Avisos' },
+      { icon: 'pi pi-star', label: 'Calificaciones' },
+      { icon: 'pi pi-comments', label: 'Comunicación' },
+    ],
+  },
+  student: {
+    badge: 'Estudiantes',
+    welcome: 'Bienvenido, estudiante',
+    lead: 'Revisa tareas, entregas y avisos de tu sede.',
+    submit: 'Entrar al portal',
+    emailLabel: 'Correo estudiantil',
+    emailPlaceholder: 'estudiante@ejemplo.com',
+    heroFeatures: [
+      { icon: 'pi pi-book', label: 'Tareas' },
+      { icon: 'pi pi-upload', label: 'Entregas' },
+      { icon: 'pi pi-megaphone', label: 'Avisos' },
+    ],
+  },
+};
 
 @Component({
   selector: 'app-login-page',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login-page.component.html',
+  styleUrl: './login-page.component.css',
 })
 export class LoginPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -21,6 +83,9 @@ export class LoginPageComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly branding = signal<LoginContextResponse | null>(null);
+  readonly brandingLoading = signal(false);
+  readonly ced = CED_BRAND;
+  readonly authRoutes = CED_AUTH_ROUTES;
   readonly error = signal<string | null>(null);
   readonly loading = signal(false);
 
@@ -40,6 +105,7 @@ export class LoginPageComponent implements OnInit {
     this.campusSlug = this.route.snapshot.paramMap.get('campusSlug') ?? '';
 
     if (this.portal !== 'platform' && this.schoolSlug && this.campusSlug) {
+      this.brandingLoading.set(true);
       this.auth
         .fetchLoginContext({
           school_slug: this.schoolSlug,
@@ -49,9 +115,13 @@ export class LoginPageComponent implements OnInit {
         .subscribe({
           next: (ctx) => {
             this.branding.set(ctx);
-            this.brandingTheme.applyPrimary(ctx.branding.primary_color_hex);
+            this.brandingLoading.set(false);
+            this.brandingTheme.applyPrimary(ensureButtonAccent(ctx.branding.primary_color_hex));
           },
-          error: () => this.error.set('Login no disponible para este portal'),
+          error: () => {
+            this.brandingLoading.set(false);
+            this.error.set('Login no disponible para este portal');
+          },
         });
     }
   }
@@ -87,7 +157,27 @@ export class LoginPageComponent implements OnInit {
       });
   }
 
+  portalCopy(): PortalLoginCopy | null {
+    if (this.portal === 'staff' || this.portal === 'parent' || this.portal === 'student') {
+      return PORTAL_LOGIN_COPY[this.portal];
+    }
+    return null;
+  }
+
+  loginAccentColor(): string {
+    return ensureButtonAccent(this.branding()?.branding.primary_color_hex);
+  }
+
   accentColor(): string {
-    return this.branding()?.branding.primary_color_hex ?? '#2563eb';
+    return this.loginAccentColor();
+  }
+
+  schoolInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() ?? '')
+      .join('');
   }
 }

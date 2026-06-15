@@ -1,9 +1,9 @@
 import { NgClass } from '@angular/common';
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, effect, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
-import { ThemeService } from '../../core/theme/theme.service';
+import { CED_BRAND } from '../../core/brand/ced-brand';
 import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
 
 @Component({
@@ -17,14 +17,18 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
     >
       <!-- Brand -->
       <div class="mc-sidebar__brand">
-        <div class="mc-sidebar__logo" [ngClass]="logoAccentClass()">
-          <i [class]="brandIcon()"></i>
+      <div class="mc-sidebar__logo" [ngClass]="logoClasses()">
+          @if (brandImageUrl()) {
+            <img class="mc-sidebar__logo-img" [src]="brandImageUrl()" alt="" />
+          } @else {
+            <i [class]="brandIcon()"></i>
+          }
         </div>
         @if (!collapsed()) {
           <div class="min-w-0">
-            <p class="truncate text-sm font-bold mc-text">{{ brandTitle() }}</p>
+            <p class="truncate mc-sidebar__brand-title">{{ brandTitle() }}</p>
             @if (brandSubtitle()) {
-              <p class="truncate text-xs mc-text-muted">{{ brandSubtitle() }}</p>
+              <p class="truncate mc-sidebar__brand-subtitle">{{ brandSubtitle() }}</p>
             }
           </div>
         }
@@ -77,31 +81,35 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
           </div>
           @if (!collapsed()) {
             <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-semibold mc-text">{{ userName() }}</p>
-              <p class="truncate text-xs mc-text-muted">{{ userEmail() }}</p>
+              <p class="truncate mc-sidebar__user-name">{{ userName() }}</p>
+              <p class="truncate mc-sidebar__user-email">{{ userEmail() }}</p>
             </div>
-            <button
-              type="button"
-              class="mc-sidebar__action"
-              [title]="theme.preferenceLabel()"
-              (click)="theme.toggle()"
-            >
-              <i [class]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"></i>
-            </button>
+            @if (showSettings()) {
+              <a
+                class="mc-sidebar__action"
+                [class.mc-sidebar__action--active]="settingsActive()"
+                [routerLink]="settingsRoute()"
+                title="Configuración del colegio"
+              >
+                <i class="pi pi-cog"></i>
+              </a>
+            }
             <button type="button" class="mc-sidebar__logout" title="Salir" (click)="logoutClick.emit()">
               <i class="pi pi-sign-out"></i>
             </button>
           }
         </div>
         @if (collapsed()) {
-          <button
-            type="button"
-            class="mc-sidebar__action mc-sidebar__action--collapsed"
-            [title]="theme.preferenceLabel()"
-            (click)="theme.toggle()"
-          >
-            <i [class]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"></i>
-          </button>
+          @if (showSettings()) {
+            <a
+              class="mc-sidebar__action mc-sidebar__action--collapsed"
+              [class.mc-sidebar__action--active]="settingsActive()"
+              [routerLink]="settingsRoute()"
+              title="Configuración del colegio"
+            >
+              <i class="pi pi-cog"></i>
+            </a>
+          }
           <button
             type="button"
             class="mc-sidebar__logout mc-sidebar__logout--collapsed"
@@ -154,14 +162,42 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
 
       .mc-sidebar__logo {
         display: flex;
-        height: 2.5rem;
-        width: 2.5rem;
+        height: 2.75rem;
+        width: 2.75rem;
         shrink: 0;
         align-items: center;
         justify-content: center;
         border-radius: 0.75rem;
         color: white;
         font-size: 1.125rem;
+      }
+
+      .mc-sidebar__logo-img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+      }
+
+      .mc-sidebar__brand-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--mc-sidebar-link-hover);
+      }
+
+      .mc-sidebar__brand-subtitle {
+        font-size: 0.75rem;
+        color: var(--mc-sidebar-muted);
+      }
+
+      .mc-sidebar__user-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--mc-sidebar-link-hover);
+      }
+
+      .mc-sidebar__user-email {
+        font-size: 0.75rem;
+        color: var(--mc-sidebar-muted);
       }
 
       .mc-sidebar__avatar.mc-sidebar__logo--staff,
@@ -179,6 +215,13 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
       .mc-sidebar__avatar.mc-sidebar__logo--student,
       .mc-sidebar__logo.mc-sidebar__logo--student {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      }
+
+      .mc-sidebar__logo.mc-sidebar__logo--image {
+        background: #ffffff !important;
+        border: 1px solid var(--mc-sidebar-border);
+        box-shadow: 0 1px 4px rgb(15 23 42 / 0.07);
+        padding: 0.3rem;
       }
 
       .mc-sidebar__search {
@@ -235,9 +278,11 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
         font-weight: 500;
         color: var(--mc-sidebar-link);
         text-decoration: none;
+        border: 1px solid transparent;
         transition:
           background 0.15s ease,
-          color 0.15s ease;
+          color 0.15s ease,
+          border-color 0.15s ease;
       }
 
       .mc-sidebar__link:hover {
@@ -246,13 +291,23 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
       }
 
       .mc-sidebar__link--active {
-        background: var(--mc-primary) !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 12px rgb(37 99 235 / 0.25);
+        background: var(--mc-sidebar-active-bg) !important;
+        color: var(--mc-sidebar-active-text) !important;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgb(15 23 42 / 0.12);
+      }
+
+      .mc-sidebar__link:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--mc-sidebar-active-bg) 65%, transparent);
+        outline-offset: 1px;
+      }
+
+      .mc-sidebar__link--active:focus-visible {
+        outline: none;
       }
 
       .mc-sidebar__link--active .mc-sidebar__link-icon {
-        color: #ffffff;
+        color: var(--mc-sidebar-active-text);
       }
 
       .mc-sidebar__link-icon {
@@ -281,8 +336,8 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
       }
 
       .mc-sidebar__link--active .mc-sidebar__badge {
-        background: rgb(255 255 255 / 0.25);
-        color: #ffffff;
+        background: color-mix(in srgb, var(--mc-sidebar-active-text) 22%, transparent);
+        color: var(--mc-sidebar-active-text);
       }
 
       .mc-sidebar__footer {
@@ -330,7 +385,12 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
 
       .mc-sidebar__action:hover {
         background: var(--mc-sidebar-action-hover-bg);
-        color: var(--mc-primary);
+        color: var(--mc-sidebar-link-hover);
+      }
+
+      .mc-sidebar__action--active {
+        background: var(--mc-sidebar-action-active-bg);
+        color: var(--mc-sidebar-action-active-text);
       }
 
       .mc-sidebar__action--collapsed {
@@ -394,16 +454,18 @@ import { McSidebarNavItem } from '../mc-sidebar-nav-item.model';
   ],
 })
 export class McModernSidebarComponent {
-  readonly theme = inject(ThemeService);
-
-  readonly brandTitle = input('Mi Cole');
+  readonly brandTitle = input(CED_BRAND.shortName);
   readonly brandSubtitle = input<string | undefined>(undefined);
   readonly brandIcon = input('pi pi-graduation-cap');
+  readonly brandImageUrl = input<string | undefined>(CED_BRAND.assets.icon);
   readonly accent = input<'staff' | 'platform' | 'parent' | 'student'>('staff');
   readonly navItems = input<McSidebarNavItem[]>([]);
   readonly userName = input('');
   readonly userEmail = input('');
   readonly showSearch = input(true);
+  readonly showSettings = input(false);
+  readonly settingsActive = input(false);
+  readonly settingsRoute = input('/app/settings');
 
   readonly logoutClick = output<void>();
 
@@ -422,6 +484,14 @@ export class McModernSidebarComponent {
 
   logoAccentClass(): string {
     return `mc-sidebar__logo--${this.accent()}`;
+  }
+
+  logoClasses(): string[] {
+    const classes = [this.logoAccentClass()];
+    if (this.brandImageUrl()) {
+      classes.push('mc-sidebar__logo--image');
+    }
+    return classes;
   }
 
   userInitials(): string {

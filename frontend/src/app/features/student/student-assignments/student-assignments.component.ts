@@ -22,7 +22,7 @@ interface AssignmentRow {
   standalone: true,
   imports: [DatePipe, RouterLink, TableModule, TagModule, McPageHeaderComponent],
   template: `
-    <mc-page-header title="Mis tareas" subtitle="Tareas publicadas para tu sede" />
+    <mc-page-header title="Mis tareas" subtitle="Tareas publicadas para tu sede" backRoute="/student" />
 
     <div class="mc-card mc-table-card">
       <p-table

@@ -1,0 +1,43 @@
+# Postgres dedicado para Mi Cole (mismo patrón que mcflow-postgres en prod).
+#
+# Levantar solo la BD:
+#   cp .env.postgres.example .env.postgres   # editar contraseña
+#   docker compose -f docker-compose.postgres.yml up -d
+#
+# Verificar:
+#   docker compose -f docker-compose.postgres.yml ps
+#   docker exec micole-postgres pg_isready -U micole -d mi_cole_db
+#
+# Esquema / seeds (desde el host, con el puerto publicado en .env.postgres):
+#   cd mi-cole-docs/sql && python run_schema.py --bootstrap
+#   cd ../../mi-cole-project/backend && python -m app.cli seed-superadmin
+#
+# La app (docker-compose.yml) se conecta vía host:
+#   backend/.env → DATABASE_HOST=host.docker.internal
+#                 DATABASE_PORT=<POSTGRES_PORT del .env.postgres, ej. 5434>
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: micole-postgres
+    restart: unless-stopped
+    env_file:
+      - .env.postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - micole_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  micole_postgres_data:

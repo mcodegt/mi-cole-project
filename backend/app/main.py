@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
-from app.routes import auth, campuses, health, parent_portal, parents, public, student_portal, students, subscription, team
+from app.routes import auth, campuses, health, parent_portal, parents, public, school_profile, student_portal, students, subscription, team
 from app.routes.platform import router as platform_router
 
 
@@ -25,6 +25,7 @@ def create_app() -> FastAPI:
     app.include_router(public.router, prefix="/api/v1")
     app.include_router(auth.router, prefix="/api/v1")
     app.include_router(campuses.router, prefix="/api/v1")
+    app.include_router(school_profile.router, prefix="/api/v1")
     app.include_router(subscription.router, prefix="/api/v1")
     app.include_router(students.router, prefix="/api/v1")
     app.include_router(parents.router, prefix="/api/v1")

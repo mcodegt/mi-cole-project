@@ -1,8 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SelectModule } from 'primeng/select';
+import { filter, map, startWith } from 'rxjs';
 
 import { BrandingThemeService } from '../../core/branding/branding-theme.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -25,14 +27,25 @@ interface CampusItem {
 export class StaffShellComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   private readonly brandingTheme = inject(BrandingThemeService);
 
+  private readonly currentPath = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url.split('?')[0]),
+      startWith(this.router.url.split('?')[0]),
+    ),
+    { initialValue: this.router.url.split('?')[0] },
+  );
+
   readonly campuses = signal<CampusItem[]>([]);
+  readonly schoolLogoUrl = signal<string | null>(null);
   selectedCampusId = '';
 
   readonly navItems = computed<McSidebarNavItem[]>(() => {
     if (this.restricted()) {
-      return [{ label: 'Suscripción', icon: 'pi pi-wallet', route: '/app/subscription' }];
+      return [];
     }
     const items: McSidebarNavItem[] = [
       { label: 'Inicio', icon: 'pi pi-home', route: '/app', exact: true },
@@ -46,17 +59,32 @@ export class StaffShellComponent implements OnInit {
     if (this.can('school.parents.read')) {
       items.push({ label: 'Padres', icon: 'pi pi-user', route: '/app/parents' });
     }
-    if (this.can('school.team.read')) {
-      items.push({ label: 'Equipo', icon: 'pi pi-id-card', route: '/app/team' });
-    }
-    if (this.can('school.subscription.read')) {
-      items.push({ label: 'Suscripción', icon: 'pi pi-credit-card', route: '/app/subscription' });
-    }
     return items;
   });
 
+  readonly showOwnerSettings = computed(() => {
+    const session = this.auth.session();
+    if (!session?.staff) {
+      return false;
+    }
+    return this.auth.isSchoolOwner();
+  });
+
+  readonly settingsRouteActive = computed(() => {
+    const path = this.currentPath();
+    return ['/app/settings', '/app/team', '/app/subscription', '/app/school-profile'].includes(path);
+  });
+
   ngOnInit(): void {
+    this.auth.refreshStaffContextIfNeeded();
     this.selectedCampusId = this.auth.session()?.campusId ?? '';
+    this.brandingTheme.loadStaffProfile();
+    this.http
+      .get<{ logo_url?: string | null }>(`${environment.apiUrl}/school/profile`)
+      .subscribe({
+        next: (profile) => this.schoolLogoUrl.set(profile.logo_url ?? null),
+        error: () => this.schoolLogoUrl.set(null),
+      });
     this.http
       .get<{ items: CampusItem[] }>(`${environment.apiUrl}/campuses`, {
         params: { page: 1, limit: 100 },
